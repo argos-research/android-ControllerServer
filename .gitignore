@@ -1,2 +1,5 @@
 # Java class files
 *.class
+
+# The shared JNI library
+*.so
