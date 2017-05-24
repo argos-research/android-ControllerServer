@@ -25,38 +25,46 @@ JNIEXPORT void JNICALL Java_uInputJNI_trigger_1axis_1X_1event
   (JNIEnv *env, jobject obj, jint step){
 
   	// Move pointer to (0,0) location
-    memset(&event, 0, sizeof(event));
-    gettimeofday(&event.time, NULL);
-    event.type = EV_REL;
-    event.code = REL_X;
-    //event.code = REL_RX;
-    //event.value = -30; //TODO use jint here
-    event.value = step; //TODO use jint here
+    // memset(&event, 0, sizeof(event));
+    // gettimeofday(&event.time, NULL);
+    // event.type = EV_REL;
+    // event.code = REL_X;
+    // //event.code = REL_RX;
+    // //event.value = -30; //TODO use jint here
+    // event.value = step; //TODO use jint here
+    // write(uinp_fd, &event, sizeof(event));
 
-    write(uinp_fd, &event, sizeof(event));
-    event.type = EV_SYN;
-    event.code = SYN_REPORT;
-    event.value = 0;
+    // event.type = EV_SYN;
+    // event.code = SYN_REPORT;
+    // event.value = 0;
+    // write(uinp_fd, &event, sizeof(event));
 
   }
 
 JNIEXPORT void JNICALL Java_uInputJNI_trigger_1axis_1Y_1event
   (JNIEnv *env, jobject obj, jint step){
 
-  	printf("Step %d\n",step);
+  	
   	// Move pointer to (0,0) location
     memset(&event, 0, sizeof(event));
     gettimeofday(&event.time, NULL);
     event.type = EV_ABS;
-    event.code = ABS_Y;
+    event.code = ABS_RY;
     //event.code = REL_RY;
     //event.value = 30; //TODO use jint here
     event.value = step; //TODO use jint here
+    if(write(uinp_fd, &event, sizeof(event)) <0){
+        printf("Unable to write on the Y axis %s","asd");
+    }
 
-    write(uinp_fd, &event, sizeof(event));
      event.type = EV_SYN;
      event.code = SYN_REPORT;
      event.value = 0;
+     if(write(uinp_fd, &event, sizeof(event)) <0){
+        printf("Unable to sync the Y axis %s","asd");
+    }
+
+     printf("Step %d\n",step);
   }
 
 
@@ -87,17 +95,29 @@ int setup_uinput_device()
 
     // Setup the uinput device
     if(ioctl(uinp_fd, UI_SET_EVBIT, EV_KEY)<0)
-        printf("unable to write");
-    if(ioctl(uinp_fd, UI_SET_EVBIT, EV_REL)<0)
-        printf("unable to write");
-    if(ioctl(uinp_fd, UI_SET_RELBIT, REL_X)<0)
-        printf("unable to write");
-    if(ioctl(uinp_fd, UI_SET_ABSBIT, ABS_Y)<0)
-        printf("unable to write");
+        // printf("unable to write");
+        printf("unable to write %s\n","asd");
+
+    // if(ioctl(uinp_fd, UI_SET_EVBIT, EV_REL)<0)
+    //     printf("unable to write %s\n","asd");
+
+    if(ioctl(uinp_fd, UI_SET_EVBIT, EV_ABS)<0)
+        printf("unable to write UI_SET_EVBIT with EV_ABS %s\n","asd");
+
+    // if(ioctl(uinp_fd, UI_SET_RELBIT, REL_X)<0)
+    //     printf("unable to write %s\n","asd");
+    
+    if(ioctl(uinp_fd, UI_SET_ABSBIT, ABS_Y)<0){
+        printf("unable to write %s\n","asd");
+    }else{
+        printf("successfull %s\n","asd");
+    }
+
     for (i=0; i < 256; i++) {
         ioctl(uinp_fd, UI_SET_KEYBIT, i);
     }
-    //ioctl(uinp_fd, UI_SET_KEYBIT, BTN_MOUSE);
+    
+    ioctl(uinp_fd, UI_SET_KEYBIT, BTN_MOUSE); //this line changes the pointer from keyboard to virtual
     //ioctl(uinp_fd, UI_SET_KEYBIT, BTN_TOUCH);
     //ioctl(uinp_fd, UI_SET_KEYBIT, BTN_MOUSE);
     //ioctl(uinp_fd, UI_SET_KEYBIT, BTN_LEFT);
@@ -109,22 +129,26 @@ int setup_uinput_device()
 
     memset(&uinp,0,sizeof(uinp)); // Intialize the uInput device to NULL
     snprintf(uinp.name, UINPUT_MAX_NAME_SIZE, "uinput-sample");
-    uinp.id.bustype = BUS_VIRTUAL;
-    uinp.id.vendor  = 0x1;
-    uinp.id.product = 0x1;
-    uinp.id.version = 1;
+    uinp.id.bustype = BUS_USB;
+    uinp.id.vendor  = ID_VENDOR;
+    uinp.id.product = ID_PRODUCT;
+    uinp.id.version = ID_VERSION;
 
-    uinp.absmin[ABS_Y] = -1024;
-    uinp.absmax[ABS_Y] = 1024;
+    // uinp.absmin[ABS_Y] = -1024;
+    // uinp.absmax[ABS_Y] = 1024;
+    for(int i = 0; i < ABS_MAX; i++){
+        uinp.absmin[i] = 0;
+        uinp.absmax[i] = 1023;
+    }
 
     /* Create input device into input sub-system */
     if(write(uinp_fd, &uinp, sizeof(uinp))< 0)
-        printf("Unable to write UINPUT device.");
+        printf("Unable to write UINPUT device.%s","asd");
 
 
     if (ioctl(uinp_fd, UI_DEV_CREATE)< 0)
     {
-        printf("Unable to create UINPUT device.");
+        printf("Unable to create UINPUT device.%s","asd");
         //die("error: ioctl");
         return -1;
     }

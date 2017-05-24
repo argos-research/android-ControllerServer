@@ -134,7 +134,9 @@ public class Utils{
 			mAccData = ob.getJSONObject("Accelerometer data");
 
 			if(mAccData.getInt("forward") > 0){
-				mUInputJNI.trigger_axis_Y_event(-mAccData.getInt("forward") * multiplier);
+				//mUInputJNI.trigger_axis_Y_event(-mAccData.getInt("forward") * multiplier);
+				//dont send negative values for the test
+				mUInputJNI.trigger_axis_Y_event(mAccData.getInt("forward") * multiplier);
 			}
 			if(mAccData.getInt("backward") > 0){
 				mUInputJNI.trigger_axis_Y_event(mAccData.getInt("backward") * multiplier);

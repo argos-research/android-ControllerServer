@@ -41,6 +41,7 @@ private uInputJNI mUInputJNI;
 	   mUInputJNI = uInputJNI.getSingletonInstance();
 	   
 	   mUtils = new Utils(stateString, mUInputJNI);
+	   
 	}
 
 	public void destroyUInputDevice(){
