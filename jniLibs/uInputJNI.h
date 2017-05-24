@@ -74,6 +74,10 @@ JNIEXPORT void JNICALL Java_uInputJNI_close_1device
 	int send_keyevent(int key_code, int is_down);
 	void send_key_click(int key_code);
 
+
+	int make_gamepad_MIT();
+
+
 #ifdef __cplusplus
 }
 #endif

@@ -4,7 +4,7 @@
 JNIEXPORT jboolean JNICALL Java_uInputJNI_setup_1uinput_1device
   (JNIEnv *env, jobject obj){
     jboolean res = JNI_FALSE;
-  	if(setup_uinput_device() == 1){
+  	if(make_gamepad_MIT() == 1){
   		res = JNI_TRUE;
     }
   	else{
@@ -78,6 +78,69 @@ JNIEXPORT void JNICALL Java_uInputJNI_close_1device
   }
 
 
+const char* try_to_find_uinput() {
+  static const char* paths[] = {
+    "/dev/uinput",
+    "/dev/input/uinput",
+    "/dev/misc/uinput"
+  };
+  const int num_paths = 3;
+  int i;
+
+  for (i = 0; i < num_paths; i++) {
+    if (access(paths[i], F_OK) == 0) {
+      return paths[i];
+    }
+  }
+  return NULL;
+}
+
+
+int make_gamepad_MIT(){
+	static int abs[] = { ABS_X, ABS_Y, ABS_RX, ABS_RY};
+	  static int key[] = { BTN_SOUTH, BTN_EAST, BTN_NORTH, BTN_WEST, BTN_SELECT, BTN_MODE, BTN_START, BTN_TL, BTN_TR, BTN_THUMBL, BTN_THUMBR, -1};
+	  struct uinput_user_dev uidev;
+	  int fd;
+	  int i;
+	  int mode = O_WRONLY;
+	  fd = open(try_to_find_uinput(), mode | O_NONBLOCK);
+	  if (fd < 0) {
+	    perror("open uinput");
+	    return -1;
+	  }
+	  
+	  memset(&uidev, 0, sizeof(uidev));
+	  snprintf(uidev.name, UINPUT_MAX_NAME_SIZE, "Mine Joystick");
+		uidev.id.bustype = BUS_USB;
+		uinp.id.vendor  = 0x1;
+		uinp.id.product = 0x1;
+		uinp.id.version = 1;
+
+	  ioctl(fd, UI_SET_EVBIT, EV_ABS);
+	  for (i = 0; i < 4; i++) {
+	    ioctl(fd, UI_SET_ABSBIT, abs[i]);
+	    uidev.absmin[abs[i]] = -32768;
+	    uidev.absmax[abs[i]] = 32767;
+	    uidev.absflat[abs[i]] = 1024;
+	  }
+
+	  
+
+	  ioctl(fd, UI_SET_EVBIT, EV_KEY);
+	  for (i = 0; key[i] >= 0; i++) {
+	    ioctl(fd, UI_SET_KEYBIT, key[i]);
+	  }
+
+	  ioctl(fd, UI_SET_PHYS, "js0");
+
+
+	  write(fd, &uidev, sizeof(uidev));
+	  if (ioctl(fd, UI_DEV_CREATE) < 0)
+	    perror("uinput device creation");
+
+
+	  return 1;
+}
 
 /* Setup the uinput device */
 int setup_uinput_device()
@@ -154,6 +217,7 @@ int setup_uinput_device()
     }
     //make it wait because it takes some time to init the whole thing.
     sleep(1);
+
 
     return 1;
 }
