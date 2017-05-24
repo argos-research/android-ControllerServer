@@ -43,19 +43,20 @@ JNIEXPORT void JNICALL Java_uInputJNI_trigger_1axis_1X_1event
 JNIEXPORT void JNICALL Java_uInputJNI_trigger_1axis_1Y_1event
   (JNIEnv *env, jobject obj, jint step){
 
+  	printf("Step %d\n",step);
   	// Move pointer to (0,0) location
     memset(&event, 0, sizeof(event));
     gettimeofday(&event.time, NULL);
-    event.type = EV_REL;
-    event.code = REL_Y;
+    event.type = EV_ABS;
+    event.code = ABS_Y;
     //event.code = REL_RY;
     //event.value = 30; //TODO use jint here
     event.value = step; //TODO use jint here
 
     write(uinp_fd, &event, sizeof(event));
-    event.type = EV_SYN;
-    event.code = SYN_REPORT;
-    event.value = 0;
+     event.type = EV_SYN;
+     event.code = SYN_REPORT;
+     event.value = 0;
   }
 
 
@@ -91,7 +92,7 @@ int setup_uinput_device()
         printf("unable to write");
     if(ioctl(uinp_fd, UI_SET_RELBIT, REL_X)<0)
         printf("unable to write");
-    if(ioctl(uinp_fd, UI_SET_RELBIT, REL_Y)<0)
+    if(ioctl(uinp_fd, UI_SET_ABSBIT, ABS_Y)<0)
         printf("unable to write");
     for (i=0; i < 256; i++) {
         ioctl(uinp_fd, UI_SET_KEYBIT, i);
@@ -108,10 +109,13 @@ int setup_uinput_device()
 
     memset(&uinp,0,sizeof(uinp)); // Intialize the uInput device to NULL
     snprintf(uinp.name, UINPUT_MAX_NAME_SIZE, "uinput-sample");
-    uinp.id.bustype = BUS_USB;
+    uinp.id.bustype = BUS_VIRTUAL;
     uinp.id.vendor  = 0x1;
     uinp.id.product = 0x1;
     uinp.id.version = 1;
+
+    uinp.absmin[ABS_Y] = -1024;
+    uinp.absmax[ABS_Y] = 1024;
 
     /* Create input device into input sub-system */
     if(write(uinp_fd, &uinp, sizeof(uinp))< 0)

@@ -127,7 +127,7 @@ public class Utils{
 			
 		}
 		//TODO consider something cleaner
-		int multiplier = 5;
+		int multiplier = 62;
 		
 		//accelerometer case
 		if(ob.has("Accelerometer data")){
@@ -224,9 +224,9 @@ public class Utils{
 		// try{
 			//Runtime.getRuntime().exec("clear"); //instead of flushing... NOT WORKING
     		//working --> http://stackoverflow.com/questions/10241217/how-to-clear-console-in-java
-			System.out.print("\033[H\033[2J"); //not working in eclipse. Flushes the screen
-			System.out.flush();
-			System.out.println(msg);
+			// System.out.print("\033[H\033[2J"); //not working in eclipse. Flushes the screen
+			// System.out.flush();
+			// System.out.println(msg);
 
 			// systemWriter.write(msg);
 			// systemWriter.flush();	
