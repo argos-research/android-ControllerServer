@@ -113,7 +113,7 @@ public class Utils{
 		
 		if(ob.has("Gyro data")){
 			mGyroData = ob.getJSONObject("Gyro data");
-
+			System.out.println("Gyro data "+mGyroData.toString());
 			//trigger the one key that is send
 			if(mGyroData.getInt("forward") > 0){
 				mUInputJNI.trigger_single_key_click(mGyroData.getInt("forward"));
@@ -127,16 +127,17 @@ public class Utils{
 			
 		}
 		//TODO consider something cleaner
-		int multiplier = 62;
+		int multiplier = 64;
+		//int multiplier = 4095;
 		
 		//accelerometer case
 		if(ob.has("Accelerometer data")){
 			mAccData = ob.getJSONObject("Accelerometer data");
 
 			if(mAccData.getInt("forward") > 0){
-				//mUInputJNI.trigger_axis_Y_event(-mAccData.getInt("forward") * multiplier);
+				mUInputJNI.trigger_axis_Y_event(-mAccData.getInt("forward") * multiplier);
 				//dont send negative values for the test
-				mUInputJNI.trigger_axis_Y_event(mAccData.getInt("forward") * multiplier);
+				//mUInputJNI.trigger_axis_Y_event(mAccData.getInt("forward") * multiplier);
 			}
 			if(mAccData.getInt("backward") > 0){
 				mUInputJNI.trigger_axis_Y_event(mAccData.getInt("backward") * multiplier);

@@ -5,6 +5,7 @@ JNIEXPORT jboolean JNICALL Java_uInputJNI_setup_1uinput_1device
   (JNIEnv *env, jobject obj){
     jboolean res = JNI_FALSE;
   	if(make_gamepad_MIT() == 1){
+	//if(setup_uinput_device() == 1){
   		res = JNI_TRUE;
     }
   	else{
@@ -25,20 +26,21 @@ JNIEXPORT void JNICALL Java_uInputJNI_trigger_1axis_1X_1event
   (JNIEnv *env, jobject obj, jint step){
 
   	// Move pointer to (0,0) location
-    // memset(&event, 0, sizeof(event));
-    // gettimeofday(&event.time, NULL);
-    // event.type = EV_REL;
-    // event.code = REL_X;
-    // //event.code = REL_RX;
-    // //event.value = -30; //TODO use jint here
-    // event.value = step; //TODO use jint here
-    // write(uinp_fd, &event, sizeof(event));
+    memset(&event, 0, sizeof(event));
+    gettimeofday(&event.time, NULL);
+    event.type = EV_ABS;
+    event.code = ABS_RX;
+    //event.code = REL_RX;
+    //event.value = -30; //TODO use jint here
+    event.value = step; //TODO use jint here
+    write(uinp_fd, &event, sizeof(event));
 
-    // event.type = EV_SYN;
-    // event.code = SYN_REPORT;
-    // event.value = 0;
-    // write(uinp_fd, &event, sizeof(event));
+    event.type = EV_SYN;
+    event.code = SYN_REPORT;
+    event.value = 0;
+    write(uinp_fd, &event, sizeof(event));
 
+    printf("Step on the X: %d\n",step);
   }
 
 JNIEXPORT void JNICALL Java_uInputJNI_trigger_1axis_1Y_1event
@@ -54,17 +56,17 @@ JNIEXPORT void JNICALL Java_uInputJNI_trigger_1axis_1Y_1event
     //event.value = 30; //TODO use jint here
     event.value = step; //TODO use jint here
     if(write(uinp_fd, &event, sizeof(event)) <0){
-        printf("Unable to write on the Y axis %s","asd");
+        //printf("Unable to write on the Y axis %s","asd");
     }
 
      event.type = EV_SYN;
      event.code = SYN_REPORT;
      event.value = 0;
      if(write(uinp_fd, &event, sizeof(event)) <0){
-        printf("Unable to sync the Y axis %s","asd");
+        //printf("Unable to sync the Y axis %s","asd");
     }
 
-     printf("Step %d\n",step);
+     printf("Step on the Y: %d\n",step);
   }
 
 
@@ -79,33 +81,45 @@ JNIEXPORT void JNICALL Java_uInputJNI_close_1device
 
 
 const char* try_to_find_uinput() {
-  static const char* paths[] = {
-    "/dev/uinput",
-    "/dev/input/uinput",
-    "/dev/misc/uinput"
-  };
-  const int num_paths = 3;
-  int i;
+	  static const char* paths[] = {
+	    "/dev/uinput",
+	    "/dev/input/uinput",
+	    "/dev/misc/uinput"
+	  };
+	  const int num_paths = 3;
+	  int i;
 
-  for (i = 0; i < num_paths; i++) {
-    if (access(paths[i], F_OK) == 0) {
-      return paths[i];
-    }
-  }
-  return NULL;
+	  for (i = 0; i < num_paths; i++) {
+	    if (access(paths[i], F_OK) == 0) {
+	      return paths[i];
+	    }
+	  }
+	  return NULL;
+
 }
 
 
 int make_gamepad_MIT(){
-	static int abs[] = { ABS_X, ABS_Y, ABS_RX, ABS_RY};
-	  static int key[] = { BTN_SOUTH, BTN_EAST, BTN_NORTH, BTN_WEST, BTN_SELECT, BTN_MODE, BTN_START, BTN_TL, BTN_TR, BTN_THUMBL, BTN_THUMBR, -1};
-	  struct uinput_user_dev uidev;
-	  int fd;
+	static int abs[] = {ABS_X, ABS_Y, ABS_RX, ABS_RY};
+	  static int key[] = {KEY_A, BTN_SOUTH, BTN_EAST, BTN_NORTH, BTN_WEST, BTN_SELECT, BTN_MODE, BTN_START, BTN_TL, BTN_TR, BTN_THUMBL, BTN_THUMBR};
+
+      printf("Value of BTN_SOUTH is %d\n",BTN_SOUTH);
+	  
+      struct uinput_user_dev uidev;
+	  //int fd;
 	  int i;
 	  int mode = O_WRONLY;
-	  fd = open(try_to_find_uinput(), mode | O_NONBLOCK);
-	  if (fd < 0) {
-	    perror("open uinput");
+
+	  // const char* path = try_to_find_uinput(); 
+	  // if(path == NULL){
+	  // 	printf("ERROR READING UIPNUT %s\n","asd");
+	  // 	return -1;
+	  // }
+	  uinp_fd = open(try_to_find_uinput(), mode | O_NONBLOCK);
+	  //uinp_fd = open(path, mode | O_NONBLOCK);
+	  //uinp_fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK);
+	  if (uinp_fd < 0) {
+	    printf("open uinput %d\n",1);
 	    return -1;
 	  }
 	  
@@ -116,27 +130,46 @@ int make_gamepad_MIT(){
 		uinp.id.product = 0x1;
 		uinp.id.version = 1;
 
-	  ioctl(fd, UI_SET_EVBIT, EV_ABS);
+	  if(ioctl(uinp_fd, UI_SET_EVBIT, EV_ABS) < 0 ){
+	  	printf("unable to write %s\n","UI_SET_EVBIT to EV_ABS");
+	  }
+
 	  for (i = 0; i < 4; i++) {
-	    ioctl(fd, UI_SET_ABSBIT, abs[i]);
-	    uidev.absmin[abs[i]] = -32768;
-	    uidev.absmax[abs[i]] = 32767;
-	    uidev.absflat[abs[i]] = 1024;
+	    if(ioctl(uinp_fd, UI_SET_ABSBIT, abs[i]) < 0 ){
+	  		printf("unable to write %s\n","UI_SET_ABSBIT to "+abs[i]);
+	  	}
+	    // uidev.absmin[abs[i]] = -32768;
+    	// uidev.absmax[abs[i]] = 32767;
+    	// uidev.absflat[abs[i]] = 1024;
+
+    	uidev.absmin[abs[i]] = -1024;
+    	uidev.absmax[abs[i]] = 1024;
+    	uidev.absflat[abs[i]] = 0;
 	  }
 
 	  
 
-	  ioctl(fd, UI_SET_EVBIT, EV_KEY);
-	  for (i = 0; key[i] >= 0; i++) {
-	    ioctl(fd, UI_SET_KEYBIT, key[i]);
+	  if(ioctl(uinp_fd, UI_SET_EVBIT, EV_KEY) < 0 ){
+	  	printf("unable to write %s\n","UI_SET_EVBIT to EV_KEY");
 	  }
 
-	  ioctl(fd, UI_SET_PHYS, "js0");
+      
+	  //for (i = 0; key[i] >= 0; i++) {
+	  for (i = 0; i < sizeof(key)/sizeof(int); i++) {
+	    if(ioctl(uinp_fd, UI_SET_KEYBIT, key[i]) < 0 ){
+	  		printf("unable to write %s\n","UI_SET_KEYBIT to "+key[i]);
+	  	}
+	  }
 
 
-	  write(fd, &uidev, sizeof(uidev));
-	  if (ioctl(fd, UI_DEV_CREATE) < 0)
-	    perror("uinput device creation");
+	  if(ioctl(uinp_fd, UI_SET_PHYS, "js0") < 0 ){
+  		printf("unable to write %s\n","UI_SET_PHYS to js0");
+	  }
+
+
+	  write(uinp_fd, &uidev, sizeof(uidev));
+	  if (ioctl(uinp_fd, UI_DEV_CREATE) < 0)
+	  		printf("uinput device creation %d\n",1);
 
 
 	  return 1;
@@ -253,8 +286,18 @@ err:
 }
 
 void send_key_click(int key_code){
-	send_keyevent(key_code, ACTION_DOWN);
-	send_keyevent(key_code, ACTION_UP);
+	// send_keyevent(key_code, ACTION_DOWN);
+ //    send_keyevent(key_code, ACTION_UP);
+
+    if(send_keyevent(KEY_A, ACTION_DOWN) == EXIT_FAILURE)
+        printf("Failed to performed %s\n","ACTION_DOWN on KEY_A");
+   
+    if(send_keyevent(KEY_A, ACTION_UP) == EXIT_FAILURE)
+        printf("Failed to performed %s\n","ACTION_UP on KEY_A");
+    
+
+    printf("Successfully performed %s\n","KEY_A");
+
 }
 
 // void send_a_button2()
