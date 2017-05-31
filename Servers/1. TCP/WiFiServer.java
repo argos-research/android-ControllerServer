@@ -98,13 +98,13 @@ private uInputJNI mUInputJNI;
 				}catch (JSONException e) {
 					System.err.println("The client is not sending JSON files! Disconnecting...");
 					mUtils.resetAllValues();
-					destroyUInputDevice();
+					//destroyUInputDevice();
 					//e.printStackTrace();
 				}catch (IOException e) {
 		            //e.printStackTrace();
 					System.err.println("The client has disconnected.");
 					mUtils.resetAllValues();
-					destroyUInputDevice();
+					//destroyUInputDevice();
 				}
 	
 	            // ------------- BEST !!!!!
@@ -112,12 +112,12 @@ private uInputJNI mUInputJNI;
 	      }catch(SocketTimeoutException s) {
 	            System.out.println("Socket timed out!"); 
 	            mUtils.resetAllValues();
-	            destroyUInputDevice();
+	            // destroyUInputDevice();
 	      }catch (IOException e) {
 	            //e.printStackTrace();
 				System.err.println("Failed to accept the server socket.");
 				mUtils.resetAllValues();
-				destroyUInputDevice();
+				// destroyUInputDevice();
 			}
 	
 	   }else{ //not closing after each FOR NOW ONLY THIS VERSION!
@@ -190,13 +190,13 @@ private uInputJNI mUInputJNI;
 					System.err.println("The client is not sending JSON files! Disconecting...");
 					//e.printStackTrace();
 					mUtils.resetAllValues();
-					this.destroyUInputDevice();
+					// this.destroyUInputDevice();
 				}catch (IOException e) {
 		            //e.printStackTrace();
 					System.err.println("The client has disconnected.");
 					mUtils.resetAllValues();
 					server.close();
-					this.destroyUInputDevice();
+					// this.destroyUInputDevice();
 					this.run(); //keep in in the loop TODO consider just with another while
 				}
 	            
@@ -205,12 +205,12 @@ private uInputJNI mUInputJNI;
 	      }catch(SocketTimeoutException s) {
 	            System.out.println("Socket timed out!");
 	            mUtils.resetAllValues();
-	            this.destroyUInputDevice();
+	            // this.destroyUInputDevice();
 	      }catch (IOException e) {
 	         	//e.printStackTrace();
 				System.err.println("Failed to accept the server socket.");
 				mUtils.resetAllValues();
-				this.destroyUInputDevice();
+				// this.destroyUInputDevice();
 	      } 
 	   }
 	   
