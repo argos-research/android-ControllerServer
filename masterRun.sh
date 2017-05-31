@@ -1,105 +1,63 @@
 #!/bin/bash
 
+#if the directory is not created then create it
+if [ ! -d "build" ]; then
+	mkdir build
+	echo "Creating new build folder."
+fi
+
+#working from EVERYTHING from the main dir!
+javac -d build/ -cp libs/java-json.jar:libs/bluecove-2.1.0.jar:libs/bluecove-emu-2.1.0.jar:libs/bluecove-gpl-2.1.0.jar utils/*.java servers/*.java 
+
+#don't continue from this point if there were some build failures 
+if [ $? -ne 0 ]; then
+	echo -e "\e[41mERROR:\e[49m There were some build failures!"
+	exit 1
+fi
+
+cd build/ 
+
+
 if [ $# -ge 1 ]; then
 	#take the command
 	communicationMethod=$1
 	if [ "$communicationMethod" == "UDP" ]; then
 		if [ $# -ne 2 ]; then
-		    echo $0: "ERROR: You have to specify port number. Example ./masterRun.sh UDP [port number]"
+		    echo -e "\e[44mWrong input!\e[49m You have to specify port number. Example sudo ./masterRun.sh UDP [port number]"
 		    exit 1
 		else
 			port=$2
-			#navigate to the folder
-			#cd Dropbox/Bachelor/9.\ Programming/3.\ P2P\ UDP/3.\ Sending\ on\ thread/
-			#cd Dropbox/Bachelor/9.\ Programming/3.\ P2P\ UDP/2.\ Second\ version/
-
-			#if the directory is not created then create it
-			if [ ! -d "binary" ]; then
-			  	mkdir binary
-			  	echo "creating new binary forlder"
-			fi
-
-			# javac -d server/ -cp lib/java-json.jar ../utils/Utils.java UDPServer.java 
-
-			# echo "The compiling was successful!"
-			# cd server
-
-			# java -cp .:../lib/java-json.jar UDPServer $port
-
-			cd Servers/2.\ UDP/
-
-			#NEW TRY
-			javac -d ../../binary/ -cp ../../libs/java-json.jar ../../utils/uInputJNI.java ../../utils/Utils.java UDPServer.java 
-
-			echo "The compiling was successful!"
-
-			cd ../../binary/
-
-			java -Djava.library.path=../jniLibs/ -cp .:../libs/java-json.jar UDPServer $port 
+			
+			java -Djava.library.path=../jniLibs/ -cp .:../libs/java-json.jar servers.UDPServer $port
 		fi
 
 	elif [ "$communicationMethod" == "TCP" ]; then
-		if [ $# -ne 3 ]; then
-		    echo $0: "ERROR: You have to specify port number and mode(0 or 1). Example ./masterRun TCP [port number] [0 or 1]"
+		if [ $# -ne 2 ]; then
+		    echo -e "\e[46mWrong input!\e[49m You have to specify port number. Example sudo ./masterRun TCP [port number]"
 		    exit 1
 		else
 
-			#navigate to the folder
-			#cd Dropbox/Bachelor/9.\ Programming/2.\ P2P\ TCP/1.\ Ready\ versions/5.\ Separate\ Utils/
-
 			port=$2
-			IsClosing=$3
 
-			#if the directory is not created then create it
-			if [ ! -d "binary" ]; then
-			  	mkdir binary
-			  	echo "creating new binary forlder"
-			fi
-
-			cd Servers/1.\ TCP/
-
-			#NEW TRY
-			javac -d ../../binary/ -cp ../../libs/java-json.jar ../../utils/uInputJNI.java ../../utils/Utils.java WiFiServer.java 
-
-			echo "The compiling was successful!"
-
-			cd ../../binary/
-
-			java -Djava.library.path=../jniLibs/ -cp .:../libs/java-json.jar WiFiServer $port $IsClosing 1000
-			#WORKING!
+			java -Djava.library.path=../jniLibs/ -cp .:../libs/java-json.jar servers.TCPServer $port 0 1000
 
 		fi
 
 
 	elif [ "$communicationMethod" == "Bluetooth" ]; then
-		if [ $# -ne 2 ]; then
-		    echo $0: "ERROR: You have to specify whether the server is sending information or not (0 or 1). Example sudo ./masterRun Bluetooth [0 or 1]"
-		    exit 1
-		else
-			#start the bluetooth
-			#sudo /etc/init.d/bluetooth start #not runnign so make sure bluetooth is on
-
-			#navigate to the folder
-			#cd Dropbox/Bachelor/9.\ Programming/4.\ Java\ Bluetooth\ server/1.\ Ready\ versions/2.\ Flush\,\ downspeed\ measurement/2.\ Server/
-
-			#new version
-			cd Servers/3.\ Bluetooth/
-
-
-			isSending=$2
-
-			javac -d ../../binary/ -cp "../../libs/bluecove-2.1.0.jar:../../libs/bluecove-emu-2.1.0.jar:../../libs/bluecove-gpl-2.1.0.jar:../../libs/java-json.jar" ../../utils/*.java BluetoothServer.java 
-
-
-
-			javac -d server/ -cp lib/java-json.jar ../utils/Utils.java WiFiServer.java 
-
-			sudo java -Djava.library.path=../../jniLibs -cp .:../../libs/bluecove-2.1.0.jar:../../libs/bluecove-emu-2.1.0.jar:../../libs/bluecove-gpl-2.1.0.jar:../../libs/java-json.jar BluetoothServer $isSending
-
-			sudo java -Djava.library.path=../../libs/. BluetoothServer 1
+		if [ "$EUID" -ne 0 ]
+		  then echo -e "\e[41mRoot permission required!\e[49m Please run as root because the Bluetooth server needs to be root."
+		  exit 1
 		fi
-	else 
-		echo "WRONG INPUT! Example usage can be sudo ./masterRun [Communication Method] [Port/isSending] [IsClosing]"
-		exit 1
+
+		#start the bluetooth
+		#sudo /etc/init.d/bluetooth start #not runnign so make sure bluetooth is on
+
+		java -Djava.library.path=../jniLibs/ -cp .:../libs/java-json.jar:../libs/bluecove-2.1.0.jar:../libs/bluecove-emu-2.1.0.jar:../libs/bluecove-gpl-2.1.0.jar servers.BluetoothServer 1
 	fi
+
+else 
+	echo -e "\e[43mWrong input!\e[49m Example usage can be sudo ./masterRun [Communication Method] [Port/isSending] [IsClosing]"
+	exit 1
 fi
+

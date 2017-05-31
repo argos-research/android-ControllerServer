@@ -1,7 +1,7 @@
 #include <jni.h>
-#include "uInputJNI.h"
+#include "utils_uInputJNI.h"
 
-JNIEXPORT jboolean JNICALL Java_uInputJNI_setup_1uinput_1device
+JNIEXPORT jboolean JNICALL Java_utils_uInputJNI_setup_1uinput_1device
   (JNIEnv *env, jobject obj){
     jboolean res = JNI_FALSE;
   	if(make_gamepad_MIT() == 1){
@@ -17,12 +17,12 @@ JNIEXPORT jboolean JNICALL Java_uInputJNI_setup_1uinput_1device
     // return JNI_FALSE;
   }
 
-JNIEXPORT void JNICALL Java_uInputJNI_trigger_1single_1key_1click
+JNIEXPORT void JNICALL Java_utils_uInputJNI_trigger_1single_1key_1click
   (JNIEnv *env, jobject obj, jint key_code){
   	send_key_click(key_code);
   }
 
-JNIEXPORT void JNICALL Java_uInputJNI_trigger_1axis_1X_1event
+JNIEXPORT void JNICALL Java_utils_uInputJNI_trigger_1axis_1X_1event
   (JNIEnv *env, jobject obj, jint step){
 
   	// Move pointer to (0,0) location
@@ -43,7 +43,7 @@ JNIEXPORT void JNICALL Java_uInputJNI_trigger_1axis_1X_1event
     printf("Step on the X: %d\n",step);
   }
 
-JNIEXPORT void JNICALL Java_uInputJNI_trigger_1axis_1Y_1event
+JNIEXPORT void JNICALL Java_utils_uInputJNI_trigger_1axis_1Y_1event
   (JNIEnv *env, jobject obj, jint step){
 
   	
@@ -70,7 +70,7 @@ JNIEXPORT void JNICALL Java_uInputJNI_trigger_1axis_1Y_1event
   }
 
 
-JNIEXPORT void JNICALL Java_uInputJNI_close_1device
+JNIEXPORT void JNICALL Java_utils_uInputJNI_close_1device
   (JNIEnv *env, jobject obj){
 
   	 /* Destroy the input device */

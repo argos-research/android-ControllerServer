@@ -1,7 +1,0 @@
-#NEW TRY
-			javac -d ../../binary/ -cp ../../libs/java-json.jar ../../utils/uInputJNI.java ../../utils/Utils.java WiFiServer.java 
-
-			java -Djava.library.path=../jniLibs/ -cp .:../libs/java-json.jar WiFiServer 8000 1 1000
-			#WORKING! 
-
-IMPORANT the JNI java file should not have a "package XYZ" in its name!

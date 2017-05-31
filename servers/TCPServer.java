@@ -1,6 +1,9 @@
 
 //taken from 5. on 04.05 18:51
 
+package servers;
+
+import utils.*;
 
 import java.net.*;
 import java.awt.KeyEventDispatcher;
@@ -12,7 +15,7 @@ import java.util.Enumeration;
 import org.json.JSONException;
 import java.util.Scanner;
 
-public class WiFiServer extends Thread {
+public class TCPServer extends Thread {
 private ServerSocket serverSocket;
 private boolean mClosingAfterEach;
 private int mCounterReset;
@@ -30,7 +33,7 @@ private Utils mUtils;
 private uInputJNI mUInputJNI;
 
 	
-	public WiFiServer(int port, boolean closingAfterEach, int counterReset) throws IOException {
+	public TCPServer(int port, boolean closingAfterEach, int counterReset) throws IOException {
 	   serverSocket = new ServerSocket(port);
 	   //serverSocket.setSoTimeout(30*1000);
 	   mClosingAfterEach = closingAfterEach;
@@ -235,7 +238,7 @@ private uInputJNI mUInputJNI;
 		}	
 	   
 	   try {
-	      Thread t = new WiFiServer(port, keepSocketOpen == 1,counterResetInterval);
+	      Thread t = new TCPServer(port, keepSocketOpen == 1,counterResetInterval);
 	      t.start();
 	      //http://stackoverflow.com/questions/27381021/detect-a-key-press-in-console
 		    Scanner keyboard = new Scanner(System.in);
@@ -245,7 +248,7 @@ private uInputJNI mUInputJNI;
 	                if ("x".equals(input)) {
 	                	keyboard.close();
 	                    System.out.println("Exiting the programm");
-	                    ((WiFiServer) t).destroyUInputDevice();
+	                    ((TCPServer) t).destroyUInputDevice();
 	                    System.exit(0);
 
 	                } 

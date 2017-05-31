@@ -3,13 +3,17 @@
 	1. javac JniTestCall.java #compile to binary
 		a) IMPORTANT NOTE: if you are using eclipse for developing, then you will have to remove the "package XYZ" from your file before compiling it!
 
-	2. javah -jni JniTestCall #generate the header file
+	2. javah -jni JniTestCall #generate the header file (https://stackoverflow.com/questions/19137201/javah-tool-error-could-not-find-class-file-for-hellojni)
+		(navigate to the main folder -> cd binary/ -> javah -jni utils.uInputJNI (assuming that the package is 'utils'-> move the header to libJNI/ -> enjoy :)
 		a) IMPORTANT NOTE: if you are using eclipse for developing, then you will have to remove the "package XYZ" from your file before compiling it! 
 
 	3. create the uInputJNI.c and follow the example in the current file (which is already created)
 
 	4. gcc -o libuInputJNI.so uInputJNI.c -shared -fpic -I/usr/lib/jvm/java-8-openjdk-amd64/include -I/usr/lib/jvm/java-8-openjdk-amd64/include/linux  
-				  #this creates the .so lib
+	 (WORKS!) gcc -o libuInputJNI.so utils_uInputJNI.c -shared -fpic -I/usr/lib/jvm/java-8-openjdk-amd64/include -I/usr/lib/jvm/java-8-openjdk-amd64/include/linux  
+
+		
+
 	#5. java -Djava.library.path=. JniTestCall
 
 3. RUN THIS in case that you have made some local changes which have nothing to do with the change of the native declaration methods! If you have done some changes to those methods, please see 2.
