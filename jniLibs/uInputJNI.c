@@ -101,7 +101,17 @@ const char* try_to_find_uinput() {
 
 int make_gamepad_MIT(){
 	static int abs[] = {ABS_X, ABS_Y, ABS_RX, ABS_RY};
-	  static int key[] = {KEY_A, BTN_SOUTH, BTN_EAST, BTN_NORTH, BTN_WEST, BTN_SELECT, BTN_MODE, BTN_START, BTN_TL, BTN_TR, BTN_THUMBL, BTN_THUMBR};
+      static int key[] = {BTN_SOUTH, BTN_EAST, BTN_NORTH, BTN_WEST, BTN_SELECT, BTN_START};
+      //from the model above values
+        // key[0] = 304
+        // key[1] = 305
+        // key[2] = 307
+        // key[3] = 308
+        // key[4] = 314
+        // key[5] = 315
+
+
+	  //static int key[] = {BTN_SOUTH, BTN_EAST, BTN_NORTH, BTN_WEST, BTN_SELECT, BTN_MODE, BTN_START, BTN_TL, BTN_TR, BTN_THUMBL, BTN_THUMBR};
 
       printf("Value of BTN_SOUTH is %d\n",BTN_SOUTH);
 	  
@@ -156,6 +166,7 @@ int make_gamepad_MIT(){
       
 	  //for (i = 0; key[i] >= 0; i++) {
 	  for (i = 0; i < sizeof(key)/sizeof(int); i++) {
+        printf("key[%d] = %d\n",i,key[i]);
 	    if(ioctl(uinp_fd, UI_SET_KEYBIT, key[i]) < 0 ){
 	  		printf("unable to write %s\n","UI_SET_KEYBIT to "+key[i]);
 	  	}
@@ -285,18 +296,22 @@ err:
     return EXIT_FAILURE;
 }
 
+//TODO do this on thread because of the usleep!
 void send_key_click(int key_code){
 	// send_keyevent(key_code, ACTION_DOWN);
  //    send_keyevent(key_code, ACTION_UP);
 
-    if(send_keyevent(KEY_A, ACTION_DOWN) == EXIT_FAILURE)
-        printf("Failed to performed %s\n","ACTION_DOWN on KEY_A");
+    if(send_keyevent(key_code, ACTION_DOWN) == EXIT_FAILURE)
+        printf("Failed to performed %s\n","ACTION_DOWN on BTN_SOUTH");
    
-    if(send_keyevent(KEY_A, ACTION_UP) == EXIT_FAILURE)
-        printf("Failed to performed %s\n","ACTION_UP on KEY_A");
+   //TODO try to do it without this or move to a thread
+    usleep(50000);
+
+    if(send_keyevent(key_code, ACTION_UP) == EXIT_FAILURE)
+        printf("Failed to performed %s\n","ACTION_UP on BTN_SOUTH");
     
 
-    printf("Successfully performed %s\n","KEY_A");
+    printf("Successfully performed button press with code %d.\n",key_code);
 
 }
 

@@ -127,6 +127,7 @@ public class Utils{
 			
 		}
 		//TODO consider something cleaner
+		//int multiplier = 5;
 		int multiplier = 64;
 		//int multiplier = 4095;
 		
