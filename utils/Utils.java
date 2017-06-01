@@ -18,26 +18,85 @@ public class Utils{
 
 	private String cutJSON = "";
 	
-	private String extraInfo = "";
 	
-	private uInputJNI mUInputJNI;
+	//private uInputJNI mUInputJNI;
 	
 	private JSONObject mGyroData = null;
 
 	private JSONObject mAccData = null;
-
-	public Utils(String extraInfo, uInputJNI uInputJNI){
-		resetAllValues();
-		this.extraInfo = extraInfo;
-		this.mUInputJNI = uInputJNI;
-
+	
+	// For storing where the server is running
+	private String serverBTinfo = "";
+	
+	private String serverTCPinfo = "";
+	
+	private String serverUDPinfo = "";
+	
+	private InetAddress localLANaddress = null;
+	
+	
+	private static Utils myIntance = null;
+	
+	public static synchronized Utils getSingletonInstance(){
+		if(myIntance == null){
+			myIntance = new Utils();
+		}
+		
+		return myIntance;
 	}
-
-	public void setClientAddress(String someAddress){
+	
+	private Utils(){
+		this.resetAllValues();
+		try {
+			localLANaddress = getLocalHostLANAddress();
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.err.println("Unable to retrive the server's local LAN address.");
+		}
+	}
+	
+	public synchronized String getServerBTinfo(){
+		return this.serverBTinfo;
+	}
+	
+	public synchronized String getServerTCPinfo(){
+		return this.serverTCPinfo;
+	}
+	
+	public synchronized String getServerUDPinfo(){
+		return this.serverUDPinfo;
+	}
+	
+	public synchronized void setServerBTinfo(String info){
+		this.serverBTinfo = info;
+	}
+	
+	public synchronized void setServerTCPinfo(String info){
+		this.serverTCPinfo = info;
+	}
+	
+	public synchronized void setServerUDPinfo(String info){
+		this.serverUDPinfo = info;
+	}
+	
+	
+	public synchronized void setClientAddress(String someAddress){
 		this.clientAddress = someAddress;
 	}
 
-	public void extractData(byte[] buffer,int bytesRead){
+	public synchronized InetAddress getLocalAddress(){
+		return this.localLANaddress;
+	}
+	
+	/**
+	 * Extract the JSON from the Bluetooth data which might cut the JSON at some
+	 * point and the other part will come in the next Stream.
+	 * 
+	 * @param buffer the received Stream buffer
+	 * @param bytesRead the amount of read bytes
+	 */
+	public synchronized void extractData(byte[] buffer,int bytesRead){
 		String lineJSON = "";
 		String received = new String(buffer, 0, bytesRead);
 		
@@ -74,44 +133,17 @@ public class Utils{
 			cutJSON = lineJSON;		//save it for the next time	
 	}
 	
-	public JSONObject toJSON(String input) throws JSONException{
+	public synchronized JSONObject toJSON(String input) throws JSONException{
 		bytesReceived += input.getBytes().length;	//for the speed measurment
 		return new JSONObject(input);
 	}
 
-	
-	//"Loop":1 marks the beginning and the "Loops count":5 marks the number of the sent messages
-	//for now just measuring
-//	public void handleInput(JSONObject ob) throws JSONException{
-//		int loopNumber = ob.getInt("Loop");
-//		//String loopNumber = (String) ob.get("Loop");
-//		int loops = ob.getInt("Loops count");
-//		
-//		currMilis = ob.getLong("Created time");
-//		
-//		updateWriter(toCorretStringFormat(loopNumber, loops));
-//		
-//		if(loopNumber == 1){ //reset the List
-//			initMilis = ob.getLong("Created time");
-//		}
-//		
-//		if(loopNumber == loops){ //last one
-//			lastMilis = ob.getLong("Created time");
-//			// i = 1;
-//			//System.err.println("\nIt took " + getTimeSpent() + " for creating, sedning and recieving of "+ loops +" JSON files.\n");
-//			updateWriter(toCorretStringFormat(loopNumber, loops)); //print the time spent
-//			//reset the longs
-//			resetAllValues();
-//			
-//		}
-//	}
-
-	public void handleInput(String JSONString) throws JSONException{
+	public synchronized void handleInput(String JSONString) throws JSONException{
 		this.handleInput(this.toJSON(JSONString));
 	}
 	
 	//new version
-	public void handleInput(JSONObject ob) throws JSONException{
+	public synchronized void handleInput(JSONObject ob) throws JSONException{
 		//int loopNumber = ob.getInt("Loop");
 		//String loopNumber = (String) ob.get("Loop");
 		//int loops = ob.getInt("Loops count");
@@ -125,13 +157,13 @@ public class Utils{
 			System.out.println("Gyro data "+mGyroData.toString());
 			//trigger the one key that is send
 			if(mGyroData.getInt("forward") > 0){
-				mUInputJNI.trigger_single_key_click(mGyroData.getInt("forward"));
+				uInputJNI.getSingletonInstance().trigger_single_key_click(mGyroData.getInt("forward"));
 			}else if(mGyroData.getInt("backward") > 0){
-				mUInputJNI.trigger_single_key_click(mGyroData.getInt("backward"));
+				uInputJNI.getSingletonInstance().trigger_single_key_click(mGyroData.getInt("backward"));
 			}else if(mGyroData.getInt("left") > 0){
-				mUInputJNI.trigger_single_key_click(mGyroData.getInt("left"));
+				uInputJNI.getSingletonInstance().trigger_single_key_click(mGyroData.getInt("left"));
 			}else if(mGyroData.getInt("right") > 0){
-				mUInputJNI.trigger_single_key_click(mGyroData.getInt("right"));
+				uInputJNI.getSingletonInstance().trigger_single_key_click(mGyroData.getInt("right"));
 			}
 			
 		}
@@ -145,18 +177,18 @@ public class Utils{
 			mAccData = ob.getJSONObject("Accelerometer data");
 
 			if(mAccData.getInt("forward") > 0){
-				mUInputJNI.trigger_axis_Y_event(-mAccData.getInt("forward") * multiplier);
+				uInputJNI.getSingletonInstance().trigger_axis_Y_event(-mAccData.getInt("forward") * multiplier);
 				//dont send negative values for the test
 				//mUInputJNI.trigger_axis_Y_event(mAccData.getInt("forward") * multiplier);
 			}
 			if(mAccData.getInt("backward") > 0){
-				mUInputJNI.trigger_axis_Y_event(mAccData.getInt("backward") * multiplier);
+				uInputJNI.getSingletonInstance().trigger_axis_Y_event(mAccData.getInt("backward") * multiplier);
 			}
 			if(mAccData.getInt("left") > 0){
-				mUInputJNI.trigger_axis_X_event(-mAccData.getInt("left") * multiplier);
+				uInputJNI.getSingletonInstance().trigger_axis_X_event(-mAccData.getInt("left") * multiplier);
 			}
 			if(mAccData.getInt("right") > 0){
-				mUInputJNI.trigger_axis_X_event(mAccData.getInt("right") * multiplier);
+				uInputJNI.getSingletonInstance().trigger_axis_X_event(mAccData.getInt("right") * multiplier);
 			}
 		}
 
@@ -183,21 +215,21 @@ public class Utils{
 	
 	
 	
-	public JSONArray getAccelerometerValues(String JSON) throws JSONException{
+	public synchronized JSONArray getAccelerometerValues(String JSON) throws JSONException{
 		return getAccelerometerValues(new JSONObject(JSON));
 	}
 	
-	public JSONArray getAccelerometerValues(JSONObject ob) throws JSONException{
+	public synchronized JSONArray getAccelerometerValues(JSONObject ob) throws JSONException{
 		//"Accelerometer data"
 		return ob.getJSONArray("Accelerometer data");
 	}
 	
 	
-	public JSONArray getGyroValues(String JSON) throws JSONException{
+	public synchronized JSONArray getGyroValues(String JSON) throws JSONException{
 		return getGyroValues(new JSONObject(JSON));
 	}
 	
-	public JSONArray getGyroValues(JSONObject ob) throws JSONException{
+	public synchronized JSONArray getGyroValues(JSONObject ob) throws JSONException{
 		//"Accelerometer data"
 		return ob.getJSONArray("Gyro data");
 	}
@@ -206,21 +238,21 @@ public class Utils{
 	
 	
 	
-	public void resetAllValues(){
+	public synchronized void resetAllValues(){
 		lastMilis = 0;
 		initMilis = 0;
 		currMilis = 0;
 		bytesReceived = 0;
 	}
 
-    public String getTimeSpent() {
+    public synchronized String getTimeSpent() {
 		if(lastMilis - initMilis > 1000)
 			return ((double)(lastMilis - initMilis))/1000 + " seconds";
 		else
 			return (lastMilis - initMilis) + " miliseconds";
 	}
     
-    public String getDownloadSpeed(long currMilis,long initMilis){
+    public synchronized String getDownloadSpeed(long currMilis,long initMilis){
     	if(currMilis - initMilis == 0){
     		return String.format("%.2f KB/s", bytesReceived/1000);
     	}else if(currMilis - initMilis < 1000){ // not big enough
@@ -233,13 +265,13 @@ public class Utils{
     }
     
     
-    public void updateWriter(String msg){
+    public synchronized void updateWriter(String msg){
 		// try{
 			//Runtime.getRuntime().exec("clear"); //instead of flushing... NOT WORKING
     		//working --> http://stackoverflow.com/questions/10241217/how-to-clear-console-in-java
-			// System.out.print("\033[H\033[2J"); //not working in eclipse. Flushes the screen
-			// System.out.flush();
-			// System.out.println(msg);
+			 System.out.print("\033[H\033[2J"); //not working in eclipse. Flushes the screen
+			 System.out.flush();
+			 System.out.println(msg);
 
 			// systemWriter.write(msg);
 			// systemWriter.flush();	
@@ -248,21 +280,31 @@ public class Utils{
 		// }
 	}
     
-    public String toCorretStringFormat(){
-    	return String.format("%s\nFrom client %s:\nReceived %d packets.\nAverage download speed is %s.%s\n", extraInfo,clientAddress,packageCounter,this.getDownloadSpeed(currMilis,initMilis), this.getTotalTimeSpent());
+    private synchronized String getServersInformation(){
+    	String res = "";
+    	res = getServerBTinfo().length()  > 0 	? res + getServerBTinfo()  + "\n"	: res;
+    	res = getServerTCPinfo().length() > 0 	? res + getServerTCPinfo() + "\n"	: res;
+    	res = getServerUDPinfo().length() > 0 	? res + getServerUDPinfo() + "\n"	: res;
+    
+    	return String.format("%s",res);
     }
     
-    public String getTotalTimeSpent(){
+    public synchronized String toCorretStringFormat(){
+    	return String.format("%s\nFrom client %s:\nReceived %d packets.\nAverage download speed is %s.%s\n", getServersInformation(),clientAddress,packageCounter,this.getDownloadSpeed(currMilis,initMilis), this.getTotalTimeSpent());
+    }
+    
+    public synchronized String getTotalTimeSpent(){
     	return lastMilis > 0 ? "\nIt took " + getTimeSpent() + " for receiving "+bytesReceived/1000000+" MB.\n" : "";
     }
 
     //found on http://stackoverflow.com/questions/9481865/getting-the-ip-address-of-the-current-machine-using-java
-	public static InetAddress getLocalHostLANAddress() throws UnknownHostException {
+	private InetAddress getLocalHostLANAddress() throws UnknownHostException {
 	    try {
 	        InetAddress candidateAddress = null;
 	        // Iterate all NICs (network interface cards)...
 	        for (Enumeration ifaces = NetworkInterface.getNetworkInterfaces(); ifaces.hasMoreElements();) {
 	            NetworkInterface iface = (NetworkInterface) ifaces.nextElement();
+	          
 	            // Iterate all IP addresses assigned to each card...
 	            for (Enumeration inetAddrs = iface.getInetAddresses(); inetAddrs.hasMoreElements();) {
 	                InetAddress inetAddr = (InetAddress) inetAddrs.nextElement();
