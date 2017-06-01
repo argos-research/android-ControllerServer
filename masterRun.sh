@@ -1,13 +1,13 @@
 #!/bin/bash
 
 #if the directory is not created then create it
-if [ ! -d "build" ]; then
-	mkdir build
-	echo "Creating new build folder."
+if [ ! -d "bin" ]; then
+	mkdir bin
+	echo "Creating new bin folder."
 fi
 
 #working from EVERYTHING from the main dir!
-javac -d build/ -cp libs/java-json.jar:libs/bluecove-2.1.0.jar:libs/bluecove-emu-2.1.0.jar:libs/bluecove-gpl-2.1.0.jar utils/*.java servers/*.java 
+javac -d bin/ -cp libs/java-json.jar:libs/bluecove-2.1.0.jar:libs/bluecove-emu-2.1.0.jar:libs/bluecove-gpl-2.1.0.jar utils/*.java servers/*.java 
 
 #don't continue from this point if there were some build failures 
 if [ $? -ne 0 ]; then
@@ -15,7 +15,7 @@ if [ $? -ne 0 ]; then
 	exit 1
 fi
 
-cd build/ 
+cd bin/ 
 
 
 if [ $# -ge 1 ]; then

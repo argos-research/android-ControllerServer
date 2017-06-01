@@ -67,6 +67,7 @@ JNIEXPORT void JNICALL Java_utils_uInputJNI_close_1device
 
 
   	int uinp_fd;
+  	int is_existing;
 	struct uinput_user_dev uinp;       // uInput device structure
 	struct input_event event; // Input device structure
 

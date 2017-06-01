@@ -10,9 +10,10 @@
 	3. create the uInputJNI.c and follow the example in the current file (which is already created)
 
 	4. gcc -o libuInputJNI.so uInputJNI.c -shared -fpic -I/usr/lib/jvm/java-8-openjdk-amd64/include -I/usr/lib/jvm/java-8-openjdk-amd64/include/linux  
-	 (WORKS!) gcc -o libuInputJNI.so utils_uInputJNI.c -shared -fpic -I/usr/lib/jvm/java-8-openjdk-amd64/include -I/usr/lib/jvm/java-8-openjdk-amd64/include/linux  
-
-		
+	 
+	 (WORKS!) USE THE VERSION BELOW
+	 4.1 gcc -o libuInputJNI.so utils_uInputJNI.c -shared -fpic -I/usr/lib/jvm/java-8-openjdk-amd64/include -I/usr/lib/jvm/java-8-openjdk-amd64/include/linux  
+	 		
 
 	#5. java -Djava.library.path=. JniTestCall
 

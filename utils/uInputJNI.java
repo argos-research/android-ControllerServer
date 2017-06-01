@@ -26,34 +26,36 @@ public class uInputJNI {
 	
 	private static uInputJNI myIntance = null;
 	
-	public static uInputJNI getSingletonInstance(){
+	public synchronized static uInputJNI getSingletonInstance(){
 		if(myIntance == null){
+			
 			myIntance = new uInputJNI(false);
 			//try to initialize the uInput device
 			if(!myIntance.setup_uinput_device()){
-				System.err.println(                                                 
-				  	"Could not initilize the uInput device." ); 
-				System.exit(1); 
-				myIntance.setUInputDeviceInitilized(false);
+				 System.err.println(                                                 
+			              "Could not initilize the uInput device." ); 
+			           System.exit(1); 
 			}else{
 				System.out.println("UInput device succesfully initialized.");
 				myIntance.setUInputDeviceInitilized(true);
 			}
 				
+		}else{
+			System.out.println("UInput is initialized so will be reused.");
 		}
 		
 		return myIntance;
 	}
 	
-	public boolean isUInputDeviceInitilized(){
+	public synchronized boolean isUInputDeviceInitilized(){
 		return this.uInputDeviceInitilized;
 	}
 	
-	public void setUInputDeviceInitilized(boolean newState){
+	public synchronized void setUInputDeviceInitilized(boolean newState){
 		this.uInputDeviceInitilized = newState;
 	}
 	
-	public boolean setupUInputDevice(){
+	public synchronized boolean setupUInputDevice(){
 		//only if it is not initialized
 		if(!uInputDeviceInitilized){
 			//try to set it up
@@ -65,7 +67,7 @@ public class uInputJNI {
 		}
 	}
 	
-	public void destroyUInputDevice(){
+	public synchronized void destroyUInputDevice(){
 		if(uInputDeviceInitilized){
 			//only if it is initialized
 			this.close_device();
@@ -101,7 +103,7 @@ public class uInputJNI {
 	 * ~ 13.289 => I can map my accelerometer values to 14 bit. The first
 	 * possibility for this would be to use the java primitive short type
 	 * since it has 16 bits of length. => for each axis I will have available 
-	 * 4 bit to map some values. These 4 bits decrease my 'step' from 10% to
+	 * 4 bit to map some vales. These 4 bits decrease my 'step' from 10% to
 	 * 100/(2^4) = 6.25 % which make it more accurate because instead of 
 	 * 10 'steps' now I will have 16.
 	 * 

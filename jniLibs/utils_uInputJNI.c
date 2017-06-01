@@ -113,77 +113,102 @@ int make_gamepad_MIT(){
 
 	  //static int key[] = {BTN_SOUTH, BTN_EAST, BTN_NORTH, BTN_WEST, BTN_SELECT, BTN_MODE, BTN_START, BTN_TL, BTN_TR, BTN_THUMBL, BTN_THUMBR};
 
-      printf("Value of BTN_SOUTH is %d\n",BTN_SOUTH);
 	  
       struct uinput_user_dev uidev;
 	  //int fd;
 	  int i;
 	  int mode = O_WRONLY;
 
-	  // const char* path = try_to_find_uinput(); 
-	  // if(path == NULL){
-	  // 	printf("ERROR READING UIPNUT %s\n","asd");
-	  // 	return -1;
-	  // }
-	  uinp_fd = open(try_to_find_uinput(), mode | O_NONBLOCK);
-	  //uinp_fd = open(path, mode | O_NONBLOCK);
-	  //uinp_fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK);
-	  if (uinp_fd < 0) {
-	    printf("open uinput %d\n",1);
-	    return -1;
-	  }
-	  
-	  memset(&uidev, 0, sizeof(uidev));
-	  snprintf(uidev.name, UINPUT_MAX_NAME_SIZE, "Mine Joystick");
-		uidev.id.bustype = BUS_USB;
-		uinp.id.vendor  = 0x1;
-		uinp.id.product = 0x1;
-		uinp.id.version = 1;
+      is_existing = 0;
 
-	  if(ioctl(uinp_fd, UI_SET_EVBIT, EV_ABS) < 0 ){
-	  	printf("unable to write %s\n","UI_SET_EVBIT to EV_ABS");
-	  }
+      //try to find and open the current isntance of the device if such exists
+      uinp_fd = open("/dev/input/js0", mode | O_NONBLOCK);
+      if(uinp_fd >= 0){
+        //device was found so use it instead of creating new one
+        printf("\nuinp_fd is %d!!!\n\n",uinp_fd);
+        is_existing = 1;
 
-	  for (i = 0; i < 4; i++) {
-	    if(ioctl(uinp_fd, UI_SET_ABSBIT, abs[i]) < 0 ){
-	  		printf("unable to write %s\n","UI_SET_ABSBIT to "+abs[i]);
-	  	}
-	    // uidev.absmin[abs[i]] = -32768;
-    	// uidev.absmax[abs[i]] = 32767;
-    	// uidev.absflat[abs[i]] = 1024;
+        char sysfs_device_name[16];
 
-    	uidev.absmin[abs[i]] = -1024;
-    	uidev.absmax[abs[i]] = 1024;
-    	uidev.absflat[abs[i]] = 0;
-	  }
+        ioctl(uinp_fd, UI_GET_SYSNAME(sizeof(sysfs_device_name)), sysfs_device_name);
+        printf("/sys/devices/virtual/input/%s\n", sysfs_device_name);
+    
+        return 1;
 
-	  
+      }
 
-	  if(ioctl(uinp_fd, UI_SET_EVBIT, EV_KEY) < 0 ){
-	  	printf("unable to write %s\n","UI_SET_EVBIT to EV_KEY");
-	  }
+      //there is no created joystick gamepad on this machine so try to create one
+
+     // const char* path = try_to_find_uinput(); 
+      // if(path == NULL){
+      //    printf("ERROR READING UIPNUT %s\n","asd");
+      //    return -1;
+      // }
+      uinp_fd = open(try_to_find_uinput(), mode | O_NONBLOCK);
+      //uinp_fd = open(path, mode | O_NONBLOCK);
+      //uinp_fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK);
+      if (uinp_fd < 0) {
+        printf("open uinput %d\n",1);
+        return -1;
+      }
+      
+      memset(&uidev, 0, sizeof(uidev));
+      snprintf(uidev.name, UINPUT_MAX_NAME_SIZE, "Mine Joystick");
+        uidev.id.bustype = BUS_USB;
+        uinp.id.vendor  = 0x1;
+        uinp.id.product = 0x1;
+        uinp.id.version = 1;
+
+      if(ioctl(uinp_fd, UI_SET_EVBIT, EV_ABS) < 0 ){
+        printf("unable to write %s\n","UI_SET_EVBIT to EV_ABS");
+      }
+
+      for (i = 0; i < 4; i++) {
+        if(ioctl(uinp_fd, UI_SET_ABSBIT, abs[i]) < 0 ){
+            printf("unable to write %s\n","UI_SET_ABSBIT to "+abs[i]);
+        }
+        // uidev.absmin[abs[i]] = -32768;
+        // uidev.absmax[abs[i]] = 32767;
+        // uidev.absflat[abs[i]] = 1024;
+
+        uidev.absmin[abs[i]] = -1024;
+        uidev.absmax[abs[i]] = 1024;
+        uidev.absflat[abs[i]] = 0;
+      }
 
       
-	  //for (i = 0; key[i] >= 0; i++) {
-	  for (i = 0; i < sizeof(key)/sizeof(int); i++) {
-        printf("key[%d] = %d\n",i,key[i]);
-	    if(ioctl(uinp_fd, UI_SET_KEYBIT, key[i]) < 0 ){
-	  		printf("unable to write %s\n","UI_SET_KEYBIT to "+key[i]);
-	  	}
-	  }
+
+      if(ioctl(uinp_fd, UI_SET_EVBIT, EV_KEY) < 0 ){
+        printf("unable to write %s\n","UI_SET_EVBIT to EV_KEY");
+      }
+
+      
+      //for (i = 0; key[i] >= 0; i++) {
+      for (i = 0; i < sizeof(key)/sizeof(int); i++) {
+        //TODO with the line below you can see which buttons are set (their corresponding int values).
+        //printf("key[%d] = %d\n",i,key[i]);
+        if(ioctl(uinp_fd, UI_SET_KEYBIT, key[i]) < 0 ){
+            printf("unable to write %s\n","UI_SET_KEYBIT to "+key[i]);
+        }
+      }
 
 
-	  if(ioctl(uinp_fd, UI_SET_PHYS, "js0") < 0 ){
-  		printf("unable to write %s\n","UI_SET_PHYS to js0");
-	  }
+      if(is_existing == 0){
+        if(ioctl(uinp_fd, UI_SET_PHYS, "js0") < 0 ){
+            printf("unable to write %s\n","UI_SET_PHYS to js0");
+        }
+
+      }
+      
 
 
-	  write(uinp_fd, &uidev, sizeof(uidev));
-	  if (ioctl(uinp_fd, UI_DEV_CREATE) < 0)
-	  		printf("uinput device creation %d\n",1);
+      write(uinp_fd, &uidev, sizeof(uidev));
+      if (ioctl(uinp_fd, UI_DEV_CREATE) < 0)
+            printf("uinput device creation %d\n",1);
 
 
-	  return 1;
+      return 1; 
+
 }
 
 /* Setup the uinput device */
