@@ -122,20 +122,21 @@ int make_gamepad_MIT(){
       is_existing = 0;
 
       //try to find and open the current isntance of the device if such exists
-      uinp_fd = open("/dev/input/js0", mode | O_NONBLOCK);
-      if(uinp_fd >= 0){
-        //device was found so use it instead of creating new one
-        printf("\nuinp_fd is %d!!!\n\n",uinp_fd);
-        is_existing = 1;
+      // OPTIONAL! Try to load the device. the if is successful but the loading is not
+      // uinp_fd = open("/dev/input/js0", mode | O_NONBLOCK);
+      // if(uinp_fd >= 0){
+      //   //device was found so use it instead of creating new one
+      //   printf("\nuinp_fd is %d!!!\n\n",uinp_fd);
+      //   is_existing = 1;
 
-        char sysfs_device_name[16];
+      //   char sysfs_device_name[16];
 
-        ioctl(uinp_fd, UI_GET_SYSNAME(sizeof(sysfs_device_name)), sysfs_device_name);
-        printf("/sys/devices/virtual/input/%s\n", sysfs_device_name);
+      //   ioctl(uinp_fd, UI_GET_SYSNAME(sizeof(sysfs_device_name)), sysfs_device_name);
+      //   printf("/sys/devices/virtual/input/%s\n", sysfs_device_name);
     
-        return 1;
+      //   return 1;
 
-      }
+      // }
 
       //there is no created joystick gamepad on this machine so try to create one
 
@@ -193,12 +194,10 @@ int make_gamepad_MIT(){
       }
 
 
-      if(is_existing == 0){
-        if(ioctl(uinp_fd, UI_SET_PHYS, "js0") < 0 ){
+      if(ioctl(uinp_fd, UI_SET_PHYS, "js0") < 0 ){
             printf("unable to write %s\n","UI_SET_PHYS to js0");
-        }
-
       }
+
       
 
 
@@ -336,7 +335,7 @@ void send_key_click(int key_code){
         printf("Failed to performed %s\n","ACTION_UP on BTN_SOUTH");
     
 
-    printf("Successfully performed button press with code %d.\n",key_code);
+    //printf("Successfully performed button press with code %d.\n",key_code);
 
 }
 

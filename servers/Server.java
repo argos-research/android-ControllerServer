@@ -134,6 +134,7 @@ public abstract class Server extends Thread{
 		return this.serverType;
 	}
 	
+	
 	public void handleInput(String msg) throws JSONException{
 		Utils.getSingletonInstance().handleInput(msg);
 	}

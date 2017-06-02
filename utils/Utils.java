@@ -70,14 +70,20 @@ public class Utils{
 	
 	public synchronized void setServerBTinfo(String info){
 		this.serverBTinfo = info;
+		
+		this.refreshServerInfos();
 	}
 	
 	public synchronized void setServerTCPinfo(String info){
 		this.serverTCPinfo = info;
+
+		this.refreshServerInfos();
 	}
 	
 	public synchronized void setServerUDPinfo(String info){
 		this.serverUDPinfo = info;
+
+		this.refreshServerInfos();
 	}
 	
 	
@@ -265,6 +271,12 @@ public class Utils{
     }
     
     
+    /**
+     * Updates the terminal printed information with the given <b>msg</b>.
+     * It always flushes the terminal in order to be more clean the printed 
+     * message.
+     * @param msg the string that should be printed alone on the terminal screen.
+     */
     public synchronized void updateWriter(String msg){
 		// try{
 			//Runtime.getRuntime().exec("clear"); //instead of flushing... NOT WORKING
@@ -280,6 +292,11 @@ public class Utils{
 		// }
 	}
     
+    /**
+     * Retrieves all of the current existing communication technologies 
+     * in this class.
+     * @return the string representation of each established server. 
+     */
     private synchronized String getServersInformation(){
     	String res = "";
     	res = getServerBTinfo().length()  > 0 	? res + getServerBTinfo()  + "\n"	: res;
@@ -289,6 +306,17 @@ public class Utils{
     	return String.format("%s",res);
     }
     
+    /**
+     * Refreshes the server information(s) on the terminal console.
+     */
+    private synchronized void refreshServerInfos(){
+    	this.updateWriter(this.getServersInformation());
+    }
+    
+    /**
+     * Represent the final look of what will be showed on the terminal.
+     * @return the showed message on the terminal.
+     */
     public synchronized String toCorretStringFormat(){
     	return String.format("%s\nFrom client %s:\nReceived %d packets.\nAverage download speed is %s.%s\n", getServersInformation(),clientAddress,packageCounter,this.getDownloadSpeed(currMilis,initMilis), this.getTotalTimeSpent());
     }
@@ -298,7 +326,12 @@ public class Utils{
     }
 
     //found on http://stackoverflow.com/questions/9481865/getting-the-ip-address-of-the-current-machine-using-java
-	private InetAddress getLocalHostLANAddress() throws UnknownHostException {
+	/**
+	 * TODO change it to returns only the IPv4 version of the local IP interface.
+	 * @return the {@link InetAddress} of the local IP server.
+	 * @throws UnknownHostException if nothing is found or some error occurs
+	 */
+    private InetAddress getLocalHostLANAddress() throws UnknownHostException {
 	    try {
 	        InetAddress candidateAddress = null;
 	        // Iterate all NICs (network interface cards)...

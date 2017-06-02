@@ -15,6 +15,8 @@ private ServerSocket serverSocket;
 
 private Socket socket;
 
+private volatile String serverInfo = "";
+
 //TODO remove
 private volatile int i = 0;
 
@@ -23,6 +25,8 @@ private String clientSocketAddress = "";
 
 	private TCPServer(int port, String additionalInformation){
 		super(port,additionalInformation,Server.Type.TCP);
+		
+		this.serverInfo = additionalInformation;
 	}
 	  
 	public TCPServer(int port) throws IOException {
@@ -43,10 +47,10 @@ private String clientSocketAddress = "";
 
 		String greeting = (i++) + " Thank you for connecting to " + getSocket().getLocalSocketAddress() +"\n";
 		
-        DataOutputStream out;
+		DataOutputStream out;
 		try {
 			out = new DataOutputStream(getSocket().getOutputStream());
-
+			
 			out.writeUTF(greeting);
 	        out.flush();
 		} catch (IOException e) {
@@ -59,8 +63,8 @@ private String clientSocketAddress = "";
 	@Override
 	public void run() {
 		//not closing after each FOR NOW ONLY THIS VERSION!
-      System.out.println("\nWaiting for client on port "+
-         serverSocket.getLocalPort() + "...");
+//      System.out.println("\nWaiting for client on port "+
+//         serverSocket.getLocalPort() + "...");
       
       try {
     	  socket = serverSocket.accept();
@@ -71,9 +75,10 @@ private String clientSocketAddress = "";
           Utils.getSingletonInstance().setClientAddress(clientSocketAddress);
           
           //start the parallel sending thread
-          super.startSendingThread();
+          //super.startSendingThread();
 
-          System.out.println("Connection established with  " + getSocket().getRemoteSocketAddress());
+          //System.out.println("Connection established with  " + getSocket().getRemoteSocketAddress());
+          super.updateUtilsServerInfos(String.format("TCP server: connection established with %s. %s", this.getSocket().getRemoteSocketAddress(),this.serverInfo));
           Utils.getSingletonInstance().resetAllValues();
           
           super.createUInputDevice(); //initialize the device if it not currently active
@@ -130,16 +135,20 @@ private String clientSocketAddress = "";
 	           
 	            
             } catch (JSONException e) {
-				System.err.println("The client is not sending JSON files! Disconecting...");
+				//System.err.println("The client is not sending JSON files! Disconecting...");
 				//e.printStackTrace();
 				Utils.getSingletonInstance().resetAllValues();
+				super.updateUtilsServerInfos(String.format("TCP server: The client it is not sending JSON files. Disconecting... %s",this.serverInfo));
 				// this.destroyUInputDevice();
+				super.stopSendingThread();
 				this.run(); //keep in in the loop TODO consider just with another while
 			}catch (IOException e) {
 	            //e.printStackTrace();
-				System.err.println("The client has disconnected.");
+				//System.err.println("The client has disconnected.");
 				Utils.getSingletonInstance().resetAllValues();
+				super.updateUtilsServerInfos(String.format("TCP server: The client has disconected... %s",this.serverInfo));
 				getSocket().close();
+				super.stopSendingThread();
 				// this.destroyUInputDevice();
 				this.run(); //keep in in the loop TODO consider just with another while
 			}
@@ -147,20 +156,26 @@ private String clientSocketAddress = "";
             // ------------- BEST !!!!!
           }
       }catch(SocketTimeoutException s) {
-            System.out.println("Socket timed out!");
+            //System.out.println("Socket timed out!");
+    	    super.updateUtilsServerInfos(String.format("TCP server: TCP socket timed out..."));
             Utils.getSingletonInstance().resetAllValues();
+            super.stopSendingThread();
             // this.destroyUInputDevice();
       }catch (IOException e) {
-         	//e.printStackTrace();
-			System.err.println("Failed to accept the server socket.");
+         	e.printStackTrace();
+			//System.err.println("Failed to accept the server socket.");
 			Utils.getSingletonInstance().resetAllValues();
+			super.stopSendingThread();
+			super.updateUtilsServerInfos(String.format("TCP server: Failed to accept the server socket..."));
 			// this.destroyUInputDevice();
       } catch (Exception ex){
-    	  System.err.println("Some unexpected exception... Closing the applicaiton");
+    	  // System.err.println("Some unexpected exception... Closing the applicaiton");
+    	  super.updateUtilsServerInfos(String.format("TCP server: Some unexpected exception..."));
     	  Utils.getSingletonInstance().resetAllValues();
+    	  super.stopSendingThread();
     	  ex.printStackTrace();
-    	  super.destroyUInputDevice();
-    	  System.exit(1);
+    	  //super.destroyUInputDevice();
+    	  //System.exit(1);
       }
    }
 	   
