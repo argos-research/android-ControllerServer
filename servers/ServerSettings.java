@@ -3,6 +3,10 @@ package servers;
 public class ServerSettings {
 	
 	//marks the duration between the sending packets 
-	public static final long SEND_INTERVAL_MILIS = 1500;
+	public static final long SEND_INTERVAL_MILIS = 500;
+	
+	//the current active technology will be marked with green
+	public static final String ANSI_GREEN = "\u001B[32m";
+	public static final String ANSI_RESET = "\u001B[0m";
 	
 }

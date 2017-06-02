@@ -65,23 +65,27 @@ public abstract class Server extends Thread{
 	 *  
 	 * @see Utils
 	 */
-	public void updateUtilsServerInfos(String serverInfo) {
+	public synchronized void updateUtilsServerInfos(String serverInfo) {
 		switch(this.serverType){
 		case TCP:
-			Utils.getSingletonInstance().setServerTCPinfo(serverInfo);
+			Utils.getSingletonInstance().setServerTCPinfo(this.getActiveTechnologyTag("TCP")+serverInfo);
 			break;
 		case UDP:
-			Utils.getSingletonInstance().setServerUDPinfo(serverInfo);
+			Utils.getSingletonInstance().setServerUDPinfo(this.getActiveTechnologyTag("UDP")+serverInfo);
 			break;
 		case Bluetooth:
-			Utils.getSingletonInstance().setServerBTinfo(serverInfo);
+			Utils.getSingletonInstance().setServerBTinfo(this.getActiveTechnologyTag("Bluetooth")+serverInfo);
 			break;
 		default: 
 			break;
 		}
 		
 	}
-
+	
+	private synchronized String getActiveTechnologyTag(String technology){
+		return String.format("[%s%s server%s]: ",ServerSettings.ANSI_GREEN,technology,ServerSettings.ANSI_RESET);
+	}
+	
 	/**
 	 * This method starts the separate thread in this class
 	 * responsible for sending parallel information to the client.

@@ -30,7 +30,7 @@ private String clientSocketAddress = "";
 	}
 	  
 	public TCPServer(int port) throws IOException {
-		this(port,String.format("WiFi TCP server running on %s:%d.",Utils.getSingletonInstance().getLocalAddress().getHostAddress(),port));
+		this(port,String.format("Running on %s:%d.",Utils.getSingletonInstance().getLocalAddress().getHostAddress(),port));
 		
 		serverSocket = new ServerSocket(port);
 		//serverSocket.setSoTimeout(30*1000);
@@ -75,7 +75,7 @@ private String clientSocketAddress = "";
           Utils.getSingletonInstance().setClientAddress(clientSocketAddress);
           
           //start the parallel sending thread
-          //super.startSendingThread();
+          super.startSendingThread();
 
           //System.out.println("Connection established with  " + getSocket().getRemoteSocketAddress());
           super.updateUtilsServerInfos(String.format("TCP server: connection established with %s. %s", this.getSocket().getRemoteSocketAddress(),this.serverInfo));
@@ -197,7 +197,7 @@ private String clientSocketAddress = "";
 	      //http://stackoverflow.com/questions/27381021/detect-a-key-press-in-console
 		    
 	      
-	      Thread terminalListener = new TerminalListener();
+	      TerminalListener terminalListener = new TerminalListener();
 	      terminalListener.start();
 	      
 	   }catch(IOException e) {
@@ -207,8 +207,5 @@ private String clientSocketAddress = "";
 
          
 	}
-
-	
-	
 	
 }

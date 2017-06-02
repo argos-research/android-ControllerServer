@@ -3,10 +3,9 @@ package utils;
 import java.util.Scanner;
 
 
-public class TerminalListener extends Thread{
+public class TerminalListener{
 
-	@Override
-	public void run(){
+	public void start(){
 		Scanner keyboard = new Scanner(System.in);
         while (true) {
             String input = keyboard.nextLine();
