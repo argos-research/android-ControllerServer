@@ -104,8 +104,7 @@ public abstract class Server extends Thread{
 					try {
 						Thread.sleep(ServerSettings.SEND_INTERVAL_MILIS);
 					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						//e.printStackTrace();
 						keepSending = false;
 					}
 				}

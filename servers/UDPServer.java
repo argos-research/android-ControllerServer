@@ -66,7 +66,7 @@ public class UDPServer extends Server{
         
         //System.out.println("Connection established on port "+ super.getServerPort() + "!");
         
-        super.updateUtilsServerInfos(String.format("%s Connection established with %d.",this.serverInfo, super.getServerPort()));
+       
         
         while(true){
         
@@ -92,8 +92,10 @@ public class UDPServer extends Server{
           
           
           
-          if(!super.isSending())
+          if(!super.isSending()){
+            super.updateUtilsServerInfos(String.format("Connection established with %d.%s ", super.getServerPort(),this.serverInfo));
             super.startSendingThread();
+          }
           
         //the additional need of closing manually the connection because of the UDP way of work
           if(JSON.contains("close")){
@@ -106,8 +108,7 @@ public class UDPServer extends Server{
           try{
                 Utils.getSingletonInstance().handleInput(JSON);
               }catch (JSONException e) {
-                System.err.println("The client is not sending JSON files! Disconecting...");
-                super.updateUtilsServerInfos("The client is not sending JSON files! Disconecting...");
+                super.updateUtilsServerInfos("The client is not sending JSON files so disconnecting... "+this.serverInfo);
                 Utils.getSingletonInstance().resetAllValues();
                 super.stopSendingThread();
                 e.printStackTrace(); 
@@ -119,7 +120,7 @@ public class UDPServer extends Server{
         
         
       } catch (SocketException e2) {
-        System.out.println("Unable to init the UDP socket.");
+        super.updateUtilsServerInfos("Unable to initialize the UDP socket... The server is NOT running.");
         super.stopSendingThread();
         e2.printStackTrace();
         
