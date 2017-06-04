@@ -89,20 +89,31 @@ public class UDPServer extends Server{
           Utils.getSingletonInstance().setClientAddress(ip);
               
           String JSON  = new String( receivePacket.getData());
-              
+          
+          
+          
           if(!super.isSending())
             super.startSendingThread();
           
+        //the additional need of closing manually the connection because of the UDP way of work
+          if(JSON.contains("close")){
+            System.out.println("CLOSING");
+//          serverSocket.disconnect();
+          Utils.getSingletonInstance().resetAllValues();
+        super.updateUtilsServerInfos(String.format("The client has disconected... %s",this.serverInfo));
+        super.stopSendingThread();
+          }else{
           try{
-            Utils.getSingletonInstance().handleInput(JSON);
-          }catch (JSONException e) {
-            System.err.println("The client is not sending JSON files! Disconecting...");
-            super.updateUtilsServerInfos("The client is not sending JSON files! Disconecting...");
-            Utils.getSingletonInstance().resetAllValues();
-            super.stopSendingThread();
-            e.printStackTrace(); 
-            this.run();
-          }    
+                Utils.getSingletonInstance().handleInput(JSON);
+              }catch (JSONException e) {
+                System.err.println("The client is not sending JSON files! Disconecting...");
+                super.updateUtilsServerInfos("The client is not sending JSON files! Disconecting...");
+                Utils.getSingletonInstance().resetAllValues();
+                super.stopSendingThread();
+                e.printStackTrace(); 
+              }    
+          }
+          
          }
         
         
@@ -111,6 +122,9 @@ public class UDPServer extends Server{
         System.out.println("Unable to init the UDP socket.");
         super.stopSendingThread();
         e2.printStackTrace();
+        
+        //this below is not possible https://stackoverflow.com/questions/38157060/udp-server-client-java
+        //I need additional information on top of UDP to handle events if the client is 'connected'
       }
       
           
