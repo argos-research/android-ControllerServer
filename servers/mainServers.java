@@ -2,6 +2,8 @@ package servers;
 
 import java.io.IOException;
 
+import javax.bluetooth.BluetoothStateException;
+
 import utils.TerminalListener;
 
 public class mainServers {
@@ -19,7 +21,7 @@ public class mainServers {
 			System.err.println("Missing ports! Start the program with additional [TCPPort] [UDPPort] !");
 			System.exit(1);
 		}
-		
+		/** TCP part */
 		int tcpPort = Integer.parseInt(args[0]);
 		
 		try {
@@ -31,10 +33,23 @@ public class mainServers {
 			((TCPServer) TCPServer).updateUtilsServerInfos(error);
 		}
 		
+		/** UDP part */
 		int udpPort = Integer.parseInt(args[1]);
 	       
 		UDPServer = new UDPServer(udpPort);
 		UDPServer.start();
+		
+		
+		/** Bluetooth part */
+		try {
+			BluetoothServer = new BluetoothServer();
+			BluetoothServer.start();
+			
+		} catch (BluetoothStateException e) {
+			String error = "Unable to start the bt server";
+			e.printStackTrace();
+			((BluetoothServer) BluetoothServer).updateUtilsServerInfos(error);
+		}
 		
         
 		//http://stackoverflow.com/questions/27381021/detect-a-key-press-in-console

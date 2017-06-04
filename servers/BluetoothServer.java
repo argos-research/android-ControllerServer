@@ -1,14 +1,21 @@
 package servers;
 
+import utils.*;
+
 //taken from 2. on 04.05 18:51
 import java.io.*;
 import utils.Utils;
+import utils.uInputJNI;
 
+import java.net.*; 
 import java.util.*;
 import javax.microedition.io.*;
 import javax.bluetooth.*;
 import javax.bluetooth.UUID;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class BluetoothServer extends Server{
 
@@ -61,67 +68,59 @@ public class BluetoothServer extends Server{
 
 	@Override
 	public void run() {
-		final String url = "btspp://localhost:" + uuid +
+		String url = "btspp://localhost:" + uuid +
   //  					new UUID( 0x1101 ).toString() + 
         				";name=File Server";
-        StreamConnectionNotifier service = null;
-        
+        StreamConnectionNotifier service;
 		try {
-			while(true){
-				service = (StreamConnectionNotifier) Connector.open( url );
-				StreamConnection con = 
-		        		(StreamConnection) service.acceptAndOpen();
-		        dos = con.openOutputStream();
-		        InputStream dis = con.openInputStream();
-		    
-		        InputStreamReader daf = new InputStreamReader(System.in);
-		        BufferedReader sd = new BufferedReader(daf);                
-		        RemoteDevice dev = RemoteDevice.getRemoteDevice(con); 
-	
-		        clientSocketAddress = dev.getBluetoothAddress();
-		        
-		        Utils.getSingletonInstance().setClientAddress(clientSocketAddress);
-		        //start the parallel sending thread
-		        super.startSendingThread();
-	
-		        //System.out.println("Connection established with  " + getSocket().getRemoteSocketAddress());
-		        super.updateUtilsServerInfos(String.format("%s Connection established with %s.",this.serverInfo, clientSocketAddress));
-		        Utils.getSingletonInstance().resetAllValues();
-		        
-		        
-		        super.createUInputDevice(); //initialize the device if it not currently active
-		        
-		        while(true){
-		        	try{
-		        		byte buffer[] = new byte[1024];
-				    	int bytes_read = dis.read( buffer );     //holds here and wait for the client
-				    	Utils.getSingletonInstance().handleInput(new String(buffer));
-		        	} catch (Exception e) {
-		        		Utils.getSingletonInstance().resetAllValues();
-						super.updateUtilsServerInfos(String.format("The client has disconected... %s",this.serverInfo));
-						con.close();
-						super.stopSendingThread();
-						// this.destroyUInputDevice();
-						this.run(); //keep in in the loop TODO consider just with another while
-						break;
-					}
-		        	
-		        	
-		        }
-			 }
+			service = (StreamConnectionNotifier) Connector.open( url );
+			StreamConnection con = 
+	        		(StreamConnection) service.acceptAndOpen();
+	        dos = con.openOutputStream();
+	        InputStream dis = con.openInputStream();
+	    
+	        InputStreamReader daf = new InputStreamReader(System.in);
+	        BufferedReader sd = new BufferedReader(daf);                
+	        RemoteDevice dev = RemoteDevice.getRemoteDevice(con); 
+
+	        clientSocketAddress = dev.getBluetoothAddress();
+	        
+	        Utils.getSingletonInstance().setClientAddress(clientSocketAddress);
+	        //start the parallel sending thread
+	        super.startSendingThread();
+
+	        //System.out.println("Connection established with  " + getSocket().getRemoteSocketAddress());
+	        super.updateUtilsServerInfos(String.format("%s Connection established with %s.",this.serverInfo, clientSocketAddress));
+	        Utils.getSingletonInstance().resetAllValues();
+	        
+	        
+	        super.createUInputDevice(); //initialize the device if it not currently active
+	        
+	        while(true){
+	        	try{
+	        		byte buffer[] = new byte[1024];
+			    	int bytes_read = dis.read( buffer );     //holds here and wait for the client
+			    	System.out.println("Received "+ Arrays.toString(buffer));
+		        	Utils.getSingletonInstance().extractData(buffer, bytes_read);
+	        	} catch (Exception e) {
+	        		Utils.getSingletonInstance().resetAllValues();
+					super.updateUtilsServerInfos(String.format("The client has disconected... %s",this.serverInfo));
+					con.close();
+					super.stopSendingThread();
+					// this.destroyUInputDevice();
+					this.run(); //keep in in the loop TODO consider just with another while
+				}
+	        	
+	        	
+	        }
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} finally {
-			try {
-				if(service != null)
-					service.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 		}
-       
+
+        
+        
+		
 	}
 
 //    public static void main( String args[] ) {

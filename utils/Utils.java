@@ -140,6 +140,7 @@ public class Utils{
 	}
 	
 	public synchronized JSONObject toJSON(String input) throws JSONException{
+		//System.out.println(input);
 		bytesReceived += input.getBytes().length;	//for the speed measurment
 		return new JSONObject(input);
 	}
