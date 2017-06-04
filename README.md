@@ -21,7 +21,7 @@ If you are getting the error:
 ```
 javax.bluetooth.ServiceRegistrationException: Can not open SDP session. [2] No such file or directory
 ```
-you will have to edit line **9** in the file */etc/systemd/system/bluetooth.target.wants/bluetooth.service* (you will need root permissions for it) from:
+you will have to edit line **9** in the file */etc/systemd/system/bluetooth.target.wants/bluetooth.service* (you will need root permissions for this) from:
 ```
 ExecStart=/usr/lib/bluetooth/bluetoothd
 ```
@@ -29,3 +29,15 @@ to
 ```
 ExecStart=/usr/lib/bluetooth/bluetoothd -C
 ```
+After changing the line, you will have to reload and restart the bluetooth device with:
+```
+#reload
+systemctl daemon-reload
+
+#restart
+sudo service bluetooth restart
+```
+
+
+## Bluetooth Server
+For the bluetooth server you have to make sure that the client (the android application) and the server (the ubuntu PC) are paired.

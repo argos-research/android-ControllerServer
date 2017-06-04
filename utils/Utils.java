@@ -282,8 +282,8 @@ public class Utils{
 		// try{
 			//Runtime.getRuntime().exec("clear"); //instead of flushing... NOT WORKING
     		//working --> http://stackoverflow.com/questions/10241217/how-to-clear-console-in-java
-			 // System.out.print("\033[H\033[2J"); //not working in eclipse. Flushes the screen
-			 // System.out.flush();
+			 System.out.print("\033[H\033[2J"); //not working in eclipse. Flushes the screen
+			 System.out.flush();
 			 System.out.println(msg);
 
 			// systemWriter.write(msg);

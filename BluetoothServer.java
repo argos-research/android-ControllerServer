@@ -95,7 +95,10 @@ public class BluetoothServer extends Server{
 		        	try{
 		        		byte buffer[] = new byte[1024];
 				    	int bytes_read = dis.read( buffer );     //holds here and wait for the client
-				    	Utils.getSingletonInstance().handleInput(new String(buffer));
+				    	String JSONinput = new String(buffer);
+				    	System.out.println(JSONinput);
+				    	//Utils.getSingletonInstance().handleInput(JSONinput);
+
 		        	} catch (Exception e) {
 		        		Utils.getSingletonInstance().resetAllValues();
 						super.updateUtilsServerInfos(String.format("The client has disconected... %s",this.serverInfo));

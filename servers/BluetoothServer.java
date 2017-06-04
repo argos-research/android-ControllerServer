@@ -1,21 +1,14 @@
 package servers;
 
-import utils.*;
-
 //taken from 2. on 04.05 18:51
 import java.io.*;
 import utils.Utils;
-import utils.uInputJNI;
 
-import java.net.*; 
 import java.util.*;
 import javax.microedition.io.*;
 import javax.bluetooth.*;
 import javax.bluetooth.UUID;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 public class BluetoothServer extends Server{
 
@@ -48,7 +41,7 @@ public class BluetoothServer extends Server{
 	
 	
 	public BluetoothServer() throws BluetoothStateException{
-		this(0,String.format("Running with MAC: %s",LocalDevice.getLocalDevice().getBluetoothAddress()));
+		this(0,String.format("Running with MAC: %s.",LocalDevice.getLocalDevice().getBluetoothAddress()));
 		
 	}
 
@@ -68,19 +61,22 @@ public class BluetoothServer extends Server{
 
 	@Override
 	public void run() {
-		String url = "btspp://localhost:" + uuid +
+		final String url = "btspp://localhost:" + uuid +
   //  					new UUID( 0x1101 ).toString() + 
         				";name=File Server";
-        StreamConnectionNotifier service;
+        StreamConnectionNotifier service = null;
+        
+        InputStreamReader daf = new InputStreamReader(System.in);
+        BufferedReader sd = new BufferedReader(daf);   
+        
 		try {
-			service = (StreamConnectionNotifier) Connector.open( url );
+			service =  (StreamConnectionNotifier) Connector.open( url );
 			StreamConnection con = 
 	        		(StreamConnection) service.acceptAndOpen();
 	        dos = con.openOutputStream();
 	        InputStream dis = con.openInputStream();
-	    
-	        InputStreamReader daf = new InputStreamReader(System.in);
-	        BufferedReader sd = new BufferedReader(daf);                
+	        
+
 	        RemoteDevice dev = RemoteDevice.getRemoteDevice(con); 
 
 	        clientSocketAddress = dev.getBluetoothAddress();
@@ -90,7 +86,7 @@ public class BluetoothServer extends Server{
 	        super.startSendingThread();
 
 	        //System.out.println("Connection established with  " + getSocket().getRemoteSocketAddress());
-	        super.updateUtilsServerInfos(String.format("%s Connection established with %s.",this.serverInfo, clientSocketAddress));
+	        super.updateUtilsServerInfos(String.format("Connection established with %s. %s", clientSocketAddress,this.serverInfo));
 	        Utils.getSingletonInstance().resetAllValues();
 	        
 	        
@@ -100,27 +96,38 @@ public class BluetoothServer extends Server{
 	        	try{
 	        		byte buffer[] = new byte[1024];
 			    	int bytes_read = dis.read( buffer );     //holds here and wait for the client
-			    	System.out.println("Received "+ Arrays.toString(buffer));
-		        	Utils.getSingletonInstance().extractData(buffer, bytes_read);
+			    	String JSONinput = new String(buffer);
+			    	//System.out.println(JSONinput);
+			    	Utils.getSingletonInstance().handleInput(JSONinput);
+
 	        	} catch (Exception e) {
 	        		Utils.getSingletonInstance().resetAllValues();
 					super.updateUtilsServerInfos(String.format("The client has disconected... %s",this.serverInfo));
-					con.close();
 					super.stopSendingThread();
+					//con.close();
+					service.close();
+					
 					// this.destroyUInputDevice();
 					this.run(); //keep in in the loop TODO consider just with another while
+					//break;
 				}
 	        	
 	        	
 	        }
+			 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} finally {
+			try {
+				if(service != null)
+					service.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
-
-        
-        
-		
+       
 	}
 
 //    public static void main( String args[] ) {

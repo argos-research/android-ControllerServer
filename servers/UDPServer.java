@@ -34,7 +34,7 @@ public class UDPServer extends Server{
   
     @Override
     public void sendLogic() {
-      System.out.println("SEND UDP called");
+      //System.out.println("SEND UDP called");
       
       int i = 0;
       byte[] sendData = new byte[1024];
