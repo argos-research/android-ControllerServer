@@ -12,107 +12,126 @@ import utils.*;
 
 public class UDPServer extends Server{
 
+  private InetAddress IPAddress;
+  
+  private volatile DatagramSocket serverSocket;
+  
+  private int receiverPort;
+  
+  private volatile String serverInfo = "";
+  
+  
+  private UDPServer(int port, String additionalInformation){
+    super(port,additionalInformation,Server.Type.UDP);
+    
+    this.serverInfo = additionalInformation;
+  }
+  
   public UDPServer(int port) {
-    super(port,String.format("WiFi TCP server running on %s:%d.",Utils.getSingletonInstance().getLocalAddress().getHostAddress(),port),Server.Type.UDP);
+    this(port,String.format("Running on %s:%d.",Utils.getSingletonInstance().getLocalAddress().getHostAddress(),port));
     
   }
-
-  @Override
-  public void run() {
-    System.out.println("\nWaiting for client on port "+
-             super.getServerPort() + "...");
-    
-    DatagramSocket serverSocket;
-    try {
-      serverSocket = new DatagramSocket(super.getServerPort());
+  
+    @Override
+    public void sendLogic() {
+      System.out.println("SEND UDP called");
       
-      System.out.println("Connection established on port "+ super.getServerPort() + "!");
-          
-      byte[] receiveData = new byte[1024];
-        
-      long lastSentMilis = 0, currentTime = 0;
-      Thread sendThread;
+      int i = 0;
+      byte[] sendData = new byte[1024];
+      String capitalizedSentence = "UDP "+ (i++);
+      sendData = capitalizedSentence.getBytes();
+      DatagramPacket sendPacket =
+      new DatagramPacket(sendData, sendData.length, this.IPAddress, receiverPort);
       
-      DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
       try {
-        serverSocket.receive(receivePacket);
-      } catch (IOException e1) {
-        // TODO Auto-generated catch block
-        e1.printStackTrace();
-      }
+        this.serverSocket.send(sendPacket);
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+      super.stopSendingThread();
+    }
       
-      InetAddress IPAddress = receivePacket.getAddress();
-      final int receiverPort = receivePacket.getPort();
-      String ip = IPAddress.toString();
-      ip = ip.substring(1,ip.length());
-      final String finalIP = ip;
-      Utils.getSingletonInstance().setClientAddress(ip);
+    }
+
+    @Override
+    public void run() {
+  //    System.out.println("\nWaiting for client on port "+
+  //             super.getServerPort() + "...");
       
-      String JSON  = new String( receivePacket.getData());
-      
-      try{
-        Utils.getSingletonInstance().handleInput(JSON);
-      }catch (JSONException e) {
-        System.err.println("The client is not sending JSON files! Disconecting...");
-        Utils.getSingletonInstance().resetAllValues();
-        e.printStackTrace(); 
-      }
-      
-      
-      currentTime = System.currentTimeMillis();
-      if(lastSentMilis == 0 || (currentTime - lastSentMilis > ServerSettings.SEND_INTERVAL_MILIS)){ //don't overload the output stream
-        //according to http://stackoverflow.com/questions/14494352/can-you-write-to-a-sockets-input-and-output-stream-at-the-same-time
-        // read should be in a separate thread
-        // this optimizes twice the speed of receiving!!!!
+      try {
+        this.serverSocket = new DatagramSocket(super.getServerPort());
+        
+  
+        
+        
+        //System.out.println("Connection established on port "+ super.getServerPort() + "!");
+        
+        super.updateUtilsServerInfos(String.format("%s Connection established with %d.",this.serverInfo, super.getServerPort()));
+        
+        while(true){
+        
+          byte[] receiveData = new byte[1024];
              
-        sendThread = new Thread(new Runnable() {
-           
-          @Override
-          public void run() {
-            //System.out.println("Sending");
-            try {
-              System.err.println("\n\nSending to "+ finalIP + ":"+ receiverPort+"...\n\n");
-              
-              byte[] sendData = new byte[1024];
-              String capitalizedSentence = "Some response from the server";
-              sendData = capitalizedSentence.getBytes();
-              DatagramPacket sendPacket =
-              new DatagramPacket(sendData, sendData.length, IPAddress, receiverPort);
-              serverSocket.send(sendPacket);
-              //System.out.println("Send " + greeting);
-            } catch (IOException e) {
-              // TODO Auto-generated catch block
-              e.printStackTrace();
-            }   //if the client is not reading it it will block the stream                  
+          DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+          
+          try {
+            serverSocket.receive(receivePacket);         
+          } catch (IOException e1) {
+            e1.printStackTrace();  
           }
-        });
-        sendThread.start();
-        lastSentMilis = currentTime;
+              
+          this.IPAddress = receivePacket.getAddress();
+          this.receiverPort = receivePacket.getPort();
+             
+          String ip = IPAddress.toString();
+          ip = ip.substring(1,ip.length());
+              
+          Utils.getSingletonInstance().setClientAddress(ip);
+              
+          String JSON  = new String( receivePacket.getData());
+              
+          if(!super.isSending())
+            super.startSendingThread();
+          
+          try{
+            Utils.getSingletonInstance().handleInput(JSON);
+          }catch (JSONException e) {
+            System.err.println("The client is not sending JSON files! Disconecting...");
+            super.updateUtilsServerInfos("The client is not sending JSON files! Disconecting...");
+            Utils.getSingletonInstance().resetAllValues();
+            super.stopSendingThread();
+            e.printStackTrace(); 
+            this.run();
+          }    
+         }
+        
+        
+        
+      } catch (SocketException e2) {
+        System.out.println("Unable to init the UDP socket.");
+        super.stopSendingThread();
+        e2.printStackTrace();
       }
       
-    } catch (SocketException e2) {
-      System.out.println("Unable to init the UDP socket.");
-      e2.printStackTrace();
+          
     }
     
-        
-  }
-    
   
-  public static void main(String [] args) {
-       System.out.print("\033[H\033[2J"); //not working in eclipse but works in terminal. Flushes the screen
-       System.out.flush();
-       
-       int port = Integer.parseInt(args[0]);
-       
-       
-        Thread t = new UDPServer(port);
-        t.start();
-        //http://stackoverflow.com/questions/27381021/detect-a-key-press-in-console
-        
-        
-        Thread terminalListener = new TerminalListener();
-        terminalListener.start();
-         
-  }
+//    public static void main(String [] args) {
+//         System.out.print("\033[H\033[2J"); //not working in eclipse but works in terminal. Flushes the screen
+//         System.out.flush();
+//         
+//         int port = Integer.parseInt(args[0]);
+//         
+//         
+//          Thread t = new UDPServer(port);
+//          t.start();
+//          //http://stackoverflow.com/questions/27381021/detect-a-key-press-in-console
+//          
+//          
+//          TerminalListener terminalListener = new TerminalListener();
+//          terminalListener.start();
+//           
+//    }
+
 }

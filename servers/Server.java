@@ -40,7 +40,7 @@ public abstract class Server extends Thread{
 	
 	private Thread senderThread;
 		
-	private volatile boolean keepSending = true;
+	private volatile boolean keepSending = false;
 
 	/**
 	 * @param port the server port.
@@ -83,7 +83,7 @@ public abstract class Server extends Thread{
 	}
 	
 	private synchronized String getActiveTechnologyTag(String technology){
-		return String.format("[%s%s server%s]: ",ServerSettings.ANSI_GREEN,technology,ServerSettings.ANSI_RESET);
+		return String.format("[%s%s%s]: ",ServerSettings.ANSI_GREEN,technology,ServerSettings.ANSI_RESET);
 	}
 	
 	/**
@@ -95,16 +95,18 @@ public abstract class Server extends Thread{
 	 * @param sendingRunnable
 	 */
 	public void startSendingThread(){
+		this.keepSending = true;
 		senderThread = new Thread(new Runnable() {
 			@Override
 			public void run() {
-				while(keepSending){
+				while(isSending()){
 					sendLogic();
 					try {
 						Thread.sleep(ServerSettings.SEND_INTERVAL_MILIS);
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
+						keepSending = false;
 					}
 				}
 				
@@ -114,11 +116,22 @@ public abstract class Server extends Thread{
 		senderThread.start();
 	}
 	
+	public synchronized boolean isSending(){
+		return this.keepSending;
+	}
+	
 	public abstract void sendLogic();
 	
 
 	public synchronized void stopSendingThread(){
 		this.keepSending = false;
+		senderThread.interrupt();
+//		try {
+//			senderThread.join();
+//		} catch (InterruptedException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 	}
 
 	public void destroyUInputDevice(){

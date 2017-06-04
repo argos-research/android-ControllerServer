@@ -13,7 +13,7 @@ import org.json.JSONException;
 public class TCPServer extends Server {
 private ServerSocket serverSocket;
 
-private Socket socket;
+private volatile Socket socket;
 
 private volatile String serverInfo = "";
 
@@ -44,8 +44,9 @@ private String clientSocketAddress = "";
 
 	@Override
 	public void sendLogic() {
-
-		String greeting = (i++) + " Thank you for connecting to " + getSocket().getLocalSocketAddress() +"\n";
+		System.out.println("SEND TCP called");
+		
+		String greeting = (i++) + " TCP" + getSocket().getLocalSocketAddress() +"\n";
 		
 		DataOutputStream out;
 		try {
@@ -78,14 +79,14 @@ private String clientSocketAddress = "";
           super.startSendingThread();
 
           //System.out.println("Connection established with  " + getSocket().getRemoteSocketAddress());
-          super.updateUtilsServerInfos(String.format("TCP server: connection established with %s. %s", this.getSocket().getRemoteSocketAddress(),this.serverInfo));
+          super.updateUtilsServerInfos(String.format("%s Connection established with %s.",this.serverInfo, this.getSocket().getRemoteSocketAddress()));
           Utils.getSingletonInstance().resetAllValues();
           
           super.createUInputDevice(); //initialize the device if it not currently active
           
           long lastSentMilis = 0, currentTime = 0;
           Thread sendThread;
-          while(true) {
+          while(socket.isConnected()) {
              // BEST VERSION!!!
             DataInputStream in = new DataInputStream(getSocket().getInputStream());
             
@@ -138,7 +139,7 @@ private String clientSocketAddress = "";
 				//System.err.println("The client is not sending JSON files! Disconecting...");
 				//e.printStackTrace();
 				Utils.getSingletonInstance().resetAllValues();
-				super.updateUtilsServerInfos(String.format("TCP server: The client it is not sending JSON files. Disconecting... %s",this.serverInfo));
+				super.updateUtilsServerInfos(String.format("The client it is not sending JSON files. Disconecting... %s",this.serverInfo));
 				// this.destroyUInputDevice();
 				super.stopSendingThread();
 				this.run(); //keep in in the loop TODO consider just with another while
@@ -146,7 +147,7 @@ private String clientSocketAddress = "";
 	            //e.printStackTrace();
 				//System.err.println("The client has disconnected.");
 				Utils.getSingletonInstance().resetAllValues();
-				super.updateUtilsServerInfos(String.format("TCP server: The client has disconected... %s",this.serverInfo));
+				super.updateUtilsServerInfos(String.format("The client has disconected... %s",this.serverInfo));
 				getSocket().close();
 				super.stopSendingThread();
 				// this.destroyUInputDevice();
@@ -155,9 +156,10 @@ private String clientSocketAddress = "";
             
             // ------------- BEST !!!!!
           }
+          System.out.println("Socket disconnected");
       }catch(SocketTimeoutException s) {
             //System.out.println("Socket timed out!");
-    	    super.updateUtilsServerInfos(String.format("TCP server: TCP socket timed out..."));
+    	    super.updateUtilsServerInfos(String.format("TCP socket timed out..."));
             Utils.getSingletonInstance().resetAllValues();
             super.stopSendingThread();
             // this.destroyUInputDevice();
@@ -166,11 +168,11 @@ private String clientSocketAddress = "";
 			//System.err.println("Failed to accept the server socket.");
 			Utils.getSingletonInstance().resetAllValues();
 			super.stopSendingThread();
-			super.updateUtilsServerInfos(String.format("TCP server: Failed to accept the server socket..."));
+			super.updateUtilsServerInfos(String.format("Failed to accept the server socket..."));
 			// this.destroyUInputDevice();
       } catch (Exception ex){
     	  // System.err.println("Some unexpected exception... Closing the applicaiton");
-    	  super.updateUtilsServerInfos(String.format("TCP server: Some unexpected exception..."));
+    	  super.updateUtilsServerInfos(String.format("Some unexpected exception..."));
     	  Utils.getSingletonInstance().resetAllValues();
     	  super.stopSendingThread();
     	  ex.printStackTrace();
@@ -185,27 +187,27 @@ private String clientSocketAddress = "";
 
 	
 	
-	public static void main(String [] args) {
-	   System.out.print("\033[H\033[2J"); //not working in eclipse but works in terminal. Flushes the screen
-	   System.out.flush();
-	   
-	   int port = Integer.parseInt(args[0]);
-	   
-	   try {
-	      Thread t = new TCPServer(port);
-	      t.start();
-	      //http://stackoverflow.com/questions/27381021/detect-a-key-press-in-console
-		    
-	      
-	      TerminalListener terminalListener = new TerminalListener();
-	      terminalListener.start();
-	      
-	   }catch(IOException e) {
-		   System.err.println("Could start the main TCP server thread. Check if the port "+port+" is not in use.");
-	      e.printStackTrace();
-	   }
-
-         
-	}
+//	public static void main(String [] args) {
+//	   System.out.print("\033[H\033[2J"); //not working in eclipse but works in terminal. Flushes the screen
+//	   System.out.flush();
+//	   
+//	   int port = Integer.parseInt(args[0]);
+//	   
+//	   try {
+//	      Thread t = new TCPServer(port);
+//	      t.start();
+//	      //http://stackoverflow.com/questions/27381021/detect-a-key-press-in-console
+//		    
+//	      
+//	      TerminalListener terminalListener = new TerminalListener();
+//	      terminalListener.start();
+//	      
+//	   }catch(IOException e) {
+//		   System.err.println("Could start the main TCP server thread. Check if the port "+port+" is not in use.");
+//	      e.printStackTrace();
+//	   }
+//
+//         
+//	}
 	
 }
