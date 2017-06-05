@@ -80,6 +80,9 @@ JNIEXPORT void JNICALL Java_utils_uInputJNI_close_1device
   }
 
 
+/*
+The possible location where the uInput can be stored.
+*/
 const char* try_to_find_uinput() {
 	  static const char* paths[] = {
 	    "/dev/uinput",
@@ -98,7 +101,10 @@ const char* try_to_find_uinput() {
 
 }
 
+/*
+  Make the uInput joystick as the example from MIT: https://github.com/jgeumlek/MoltenGamepad
 
+*/
 int make_gamepad_MIT(){
 	static int abs[] = {ABS_X, ABS_Y, ABS_RX, ABS_RY};
       static int key[] = {BTN_SOUTH, BTN_EAST, BTN_NORTH, BTN_WEST, BTN_SELECT, BTN_START};
@@ -320,23 +326,28 @@ err:
     return EXIT_FAILURE;
 }
 
-//TODO do this on thread because of the usleep!
+
+void *send_key_click_thread(void *key_code){
+    int key_code_int = (intptr_t)key_code;
+    if(send_keyevent(key_code_int, ACTION_DOWN) == EXIT_FAILURE)
+          printf("Failed to performed %s\n","ACTION_DOWN on BTN_SOUTH");
+     
+     //this is needed in order the UInput device to detect a normal joystick press
+      usleep(50000);
+
+      if(send_keyevent(key_code_int, ACTION_UP) == EXIT_FAILURE)
+          printf("Failed to performed %s\n","ACTION_UP on BTN_SOUTH");
+
+      return NULL;
+}
+
+
 void send_key_click(int key_code){
-	// send_keyevent(key_code, ACTION_DOWN);
- //    send_keyevent(key_code, ACTION_UP);
+    //start it on the thread
+    if(pthread_create(&thread, NULL, send_key_click_thread, (void *)(intptr_t)key_code)){
 
-    if(send_keyevent(key_code, ACTION_DOWN) == EXIT_FAILURE)
-        printf("Failed to performed %s\n","ACTION_DOWN on BTN_SOUTH");
-   
-   //TODO try to do it without this or move to a thread
-    usleep(50000);
-
-    if(send_keyevent(key_code, ACTION_UP) == EXIT_FAILURE)
-        printf("Failed to performed %s\n","ACTION_UP on BTN_SOUTH");
-    
-
-    //printf("Successfully performed button press with code %d.\n",key_code);
-
+        printf("Unable to create the thread %s.\n", " a");
+    }
 }
 
 

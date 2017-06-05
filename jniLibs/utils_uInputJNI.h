@@ -3,6 +3,7 @@
 /* Header for class utils_uInputJNI */
 #include <string.h>
 #include <stdio.h>
+#include <pthread.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -68,6 +69,7 @@ JNIEXPORT void JNICALL Java_utils_uInputJNI_close_1device
 
   	int uinp_fd;
   	int is_existing;
+  	pthread_t thread;
 	struct uinput_user_dev uinp;       // uInput device structure
 	struct input_event event; // Input device structure
 
@@ -75,6 +77,7 @@ JNIEXPORT void JNICALL Java_utils_uInputJNI_close_1device
 	void send_click_events();
 	int send_keyevent(int key_code, int is_down);
 	void send_key_click(int key_code);
+	void *send_key_click_thread(void *key_code);
 
 
 	int make_gamepad_MIT();

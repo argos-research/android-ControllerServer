@@ -44,7 +44,7 @@ private String clientSocketAddress = "";
 
 	@Override
 	public void sendLogic() {
-		System.out.println("SEND TCP called");
+		//System.out.println("SEND TCP called");
 		
 		String greeting = (i++) + " TCP" + getSocket().getLocalSocketAddress() +"\n";
 		
