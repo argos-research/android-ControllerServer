@@ -40,6 +40,8 @@ public class Utils{
 	
 	private Type activeConenctionType = Server.Type.Nothing;
 	
+	private String exitProgramInfo = "If you want to stop the server, please type 'x' followed by Enter!";
+	
 	
 	private static Utils myIntance = null;
 	
@@ -332,7 +334,7 @@ public class Utils{
      * @return the showed message on the terminal.
      */
     public synchronized String toCorretStringFormat(){
-    	return String.format("%s\nFrom client %s:\nReceived %d packets.\n ", getServersInformation(),clientAddress,packageCounter);
+    	return String.format("%s\nFrom client %s:\nReceived %d packets.\n%s\n", getServersInformation(),clientAddress,packageCounter,exitProgramInfo);
     }
     
     public synchronized String getTotalTimeSpent(){
