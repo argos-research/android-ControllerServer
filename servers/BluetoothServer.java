@@ -86,9 +86,9 @@ public class BluetoothServer extends Server{
 	        super.startSendingThread();
 
 	        //System.out.println("Connection established with  " + getSocket().getRemoteSocketAddress());
+	        Utils.getSingletonInstance().setActiveConnectionType(Server.Type.Bluetooth);
 	        super.updateUtilsServerInfos(String.format("Connection established with %s. %s", clientSocketAddress,this.serverInfo));
 	        Utils.getSingletonInstance().resetAllValues();
-	        
 	        
 	        super.createUInputDevice(); //initialize the device if it not currently active
 	        
@@ -102,6 +102,8 @@ public class BluetoothServer extends Server{
 
 	        	} catch (Exception e) {
 	        		Utils.getSingletonInstance().resetAllValues();
+	        		
+	        		Utils.getSingletonInstance().setActiveConnectionType(Server.Type.Nothing);
 					super.updateUtilsServerInfos(String.format("The client has disconected... %s",this.serverInfo));
 					super.stopSendingThread();
 					//con.close();

@@ -61,13 +61,6 @@ public class UDPServer extends Server{
       try {
         this.serverSocket = new DatagramSocket(super.getServerPort());
         
-  
-        
-        
-        //System.out.println("Connection established on port "+ super.getServerPort() + "!");
-        
-       
-        
         while(true){
         
           byte[] receiveData = new byte[1024];
@@ -93,6 +86,7 @@ public class UDPServer extends Server{
           
           
           if(!super.isSending()){
+            Utils.getSingletonInstance().setActiveConnectionType(Server.Type.UDP);
             super.updateUtilsServerInfos(String.format("Connection established with %d.%s ", super.getServerPort(),this.serverInfo));
             super.startSendingThread();
           }
@@ -100,20 +94,22 @@ public class UDPServer extends Server{
         //the additional need of closing manually the connection because of the UDP way of work
           if(JSON.contains("close")){
             System.out.println("CLOSING");
-//          serverSocket.disconnect();
-          Utils.getSingletonInstance().resetAllValues();
-        super.updateUtilsServerInfos(String.format("The client has disconected... %s",this.serverInfo));
-        super.stopSendingThread();
+            //          serverSocket.disconnect();
+            Utils.getSingletonInstance().resetAllValues();
+            Utils.getSingletonInstance().setActiveConnectionType(Server.Type.Nothing);
+            super.updateUtilsServerInfos(String.format("The client has disconnected... %s",this.serverInfo));
+            super.stopSendingThread();
           }else{
-          try{
+            try{
                 Utils.getSingletonInstance().handleInput(JSON);
               }catch (JSONException e) {
+                Utils.getSingletonInstance().setActiveConnectionType(Server.Type.Nothing);
                 super.updateUtilsServerInfos("The client is not sending JSON files so disconnecting... "+this.serverInfo);
                 Utils.getSingletonInstance().resetAllValues();
                 super.stopSendingThread();
                 e.printStackTrace(); 
               }    
-          }
+            }
           
          }
         

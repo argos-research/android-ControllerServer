@@ -6,6 +6,10 @@ import java.net.UnknownHostException;
 import java.util.Enumeration;
 
 import org.json.JSONObject;
+
+import servers.Server;
+import servers.Server.Type;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -34,6 +38,8 @@ public class Utils{
 	
 	private InetAddress localLANaddress = null;
 	
+	private Type activeConenctionType = Server.Type.Nothing;
+	
 	
 	private static Utils myIntance = null;
 	
@@ -54,6 +60,14 @@ public class Utils{
 			e.printStackTrace();
 			System.err.println("Unable to retrive the server's local LAN address.");
 		}
+	}
+	
+	public synchronized Type getActiveConnectionType(){
+		return this.activeConenctionType;
+	}
+	
+	public synchronized void setActiveConnectionType(Type newType){
+		this.activeConenctionType = newType;			
 	}
 	
 	public synchronized String getServerBTinfo(){

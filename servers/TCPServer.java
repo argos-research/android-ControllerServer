@@ -44,7 +44,7 @@ private String clientSocketAddress = "";
 
 	@Override
 	public void sendLogic() {
-		// chdmo	System.out.println("SEND TCP called");
+		System.out.println("SEND TCP called");
 		
 		String greeting = (i++) + " TCP" + getSocket().getLocalSocketAddress() +"\n";
 		
@@ -78,8 +78,8 @@ private String clientSocketAddress = "";
           //start the parallel sending thread
           super.startSendingThread();
 
-          //System.out.println("Connection established with  " + getSocket().getRemoteSocketAddress());
-          super.updateUtilsServerInfos(String.format("Connection established with %s. %s ", clientSocketAddress, this.serverInfo));
+          Utils.getSingletonInstance().setActiveConnectionType(Server.Type.TCP);
+          super.updateUtilsServerInfos(String.format("%s Connection established with %s.",this.serverInfo, this.getSocket().getRemoteSocketAddress()));
           Utils.getSingletonInstance().resetAllValues();
           
           super.createUInputDevice(); //initialize the device if it not currently active
@@ -139,7 +139,9 @@ private String clientSocketAddress = "";
 				//System.err.println("The client is not sending JSON files! Disconecting...");
 				//e.printStackTrace();
 				Utils.getSingletonInstance().resetAllValues();
-				super.updateUtilsServerInfos(String.format("The client it is not sending JSON files. Disconecting... %s ",this.serverInfo));
+
+		        Utils.getSingletonInstance().setActiveConnectionType(Server.Type.Nothing);
+				super.updateUtilsServerInfos(String.format("The client it is not sending JSON files. Disconecting... %s",this.serverInfo));
 				// this.destroyUInputDevice();
 				super.stopSendingThread();
 				this.run(); //keep in in the loop TODO consider just with another while
@@ -147,6 +149,7 @@ private String clientSocketAddress = "";
 	            //e.printStackTrace();
 				//System.err.println("The client has disconnected.");
 				Utils.getSingletonInstance().resetAllValues();
+				Utils.getSingletonInstance().setActiveConnectionType(Server.Type.Nothing);
 				super.updateUtilsServerInfos(String.format("The client has disconected... %s",this.serverInfo));
 				getSocket().close();
 				super.stopSendingThread();
@@ -156,7 +159,6 @@ private String clientSocketAddress = "";
             
             // ------------- BEST !!!!!
           }
-          System.out.println("Socket disconnected");
       }catch(SocketTimeoutException s) {
             //System.out.println("Socket timed out!");
     	    super.updateUtilsServerInfos(String.format("TCP socket timed out..."));

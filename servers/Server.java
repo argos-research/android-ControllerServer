@@ -1,5 +1,7 @@
 package servers;
 
+import java.io.IOException;
+
 import org.json.JSONException;
 
 import utils.*;
@@ -26,10 +28,11 @@ public abstract class Server extends Thread{
 //		}
 //	}
 	
-	static enum Type{
+	public static enum Type{
 		TCP,
 		UDP,
-		Bluetooth
+		Bluetooth,
+		Nothing
 	}
 	
 	private int serverPort;
@@ -55,23 +58,23 @@ public abstract class Server extends Thread{
 	}
 	
 	/**
-	 * This method is used to update the {@link Utils} server
+	 * This method is used to update the {@link utils} server
 	 * strings containing the basic server Info such as current connection,
 	 * IP, Type etc. which will always stay at the very top of the terminal.
-	 * There are three types String server infos in the {@link Utils} :
+	 * There are three types String server infos in the {@link utils} :
 	 * <b>serverBTinfo</b>,  <b>serverTCPinfo</b>, <b>serverUDPinfo</b>.
 	 *  
 	 * @param serverInfo the new server info.
 	 *  
-	 * @see Utils
+	 * @see utils
 	 */
 	public synchronized void updateUtilsServerInfos(String serverInfo) {
 		switch(this.serverType){
 		case TCP:
-			Utils.getSingletonInstance().setServerTCPinfo(this.getActiveTechnologyTag("TCP")+serverInfo);
+			Utils.getSingletonInstance().setServerTCPinfo(this.getActiveTechnologyTag("   TCP   ")+serverInfo);
 			break;
 		case UDP:
-			Utils.getSingletonInstance().setServerUDPinfo(this.getActiveTechnologyTag("UDP")+serverInfo);
+			Utils.getSingletonInstance().setServerUDPinfo(this.getActiveTechnologyTag("   UDP   ")+serverInfo);
 			break;
 		case Bluetooth:
 			Utils.getSingletonInstance().setServerBTinfo(this.getActiveTechnologyTag("Bluetooth")+serverInfo);
@@ -83,7 +86,10 @@ public abstract class Server extends Thread{
 	}
 	
 	private synchronized String getActiveTechnologyTag(String technology){
-		return String.format("[%s%s%s]: ",ServerSettings.ANSI_GREEN,technology,ServerSettings.ANSI_RESET);
+		if(Utils.getSingletonInstance().getActiveConnectionType().toString().contains(technology.trim()))
+			return String.format("[%s%s%s]: ",ServerSettings.ANSI_GREEN,technology,ServerSettings.ANSI_RESET);
+		else
+			return String.format("[%s%s%s]: ",ServerSettings.ANSI_YELLOW,technology,ServerSettings.ANSI_RESET);
 	}
 	
 	/**
@@ -104,7 +110,7 @@ public abstract class Server extends Thread{
 					try {
 						Thread.sleep(ServerSettings.SEND_INTERVAL_MILIS);
 					} catch (InterruptedException e) {
-						//e.printStackTrace();
+						//System.out.println("Succesfully disconnected.");
 						keepSending = false;
 					}
 				}
@@ -125,12 +131,6 @@ public abstract class Server extends Thread{
 	public synchronized void stopSendingThread(){
 		this.keepSending = false;
 		senderThread.interrupt();
-//		try {
-//			senderThread.join();
-//		} catch (InterruptedException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
 	}
 
 	public void destroyUInputDevice(){
