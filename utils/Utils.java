@@ -175,7 +175,6 @@ public class Utils{
 		
 		if(ob.has("Gyro data")){
 			mGyroData = ob.getJSONObject("Gyro data");
-			System.out.println("Gyro data "+mGyroData.toString());
 			//trigger the one key that is send
 			if(mGyroData.getInt("forward") > 0){
 				uInputJNI.getSingletonInstance().trigger_single_key_click(mGyroData.getInt("forward"));
