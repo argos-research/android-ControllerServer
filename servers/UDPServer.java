@@ -116,9 +116,9 @@ public class UDPServer extends Server{
         
         
       } catch (SocketException e2) {
-        super.updateUtilsServerInfos("Unable to initialize the UDP socket... The server is NOT running.");
-        super.stopSendingThread();
-        e2.printStackTrace();
+          super.updateUtilsServerInfos("Unable to initialize the UDP socket... The server is NOT running.");
+          super.stopSendingThread();
+          e2.printStackTrace();
         
         //this below is not possible https://stackoverflow.com/questions/38157060/udp-server-client-java
         //I need additional information on top of UDP to handle events if the client is 'connected'

@@ -333,7 +333,7 @@ public class Utils{
      * @return the showed message on the terminal.
      */
     public synchronized String toCorretStringFormat(){
-    	return String.format("%s\nFrom client %s:\nReceived %d packets.\nAverage download speed is %s.%s\n", getServersInformation(),clientAddress,packageCounter,this.getDownloadSpeed(currMilis,initMilis), this.getTotalTimeSpent());
+    	return String.format("%s\nFrom client %s:\nReceived %d packets.\n ", getServersInformation(),clientAddress,packageCounter);
     }
     
     public synchronized String getTotalTimeSpent(){

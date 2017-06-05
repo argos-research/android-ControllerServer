@@ -40,7 +40,7 @@ JNIEXPORT void JNICALL Java_utils_uInputJNI_trigger_1axis_1X_1event
     event.value = 0;
     write(uinp_fd, &event, sizeof(event));
 
-    printf("Step on the X: %d\n",step);
+    //printf("Step on the X: %d\n",step);
   }
 
 JNIEXPORT void JNICALL Java_utils_uInputJNI_trigger_1axis_1Y_1event
@@ -66,7 +66,7 @@ JNIEXPORT void JNICALL Java_utils_uInputJNI_trigger_1axis_1Y_1event
         //printf("Unable to sync the Y axis %s","asd");
     }
 
-     printf("Step on the Y: %d\n",step);
+     //printf("Step on the Y: %d\n",step);
   }
 
 
@@ -210,7 +210,7 @@ int make_gamepad_MIT(){
 
 }
 
-/* Setup the uinput device */
+/* Setup the uinput device. NOT USED!*/
 int setup_uinput_device()
 {
     // Temporary variable
@@ -338,30 +338,6 @@ void send_key_click(int key_code){
     //printf("Successfully performed button press with code %d.\n",key_code);
 
 }
-
-// void send_a_button2()
-// {
-// 	if(setup_uinput_device() > 0){
-// 		//always wait 1 sec for the initialization otherwise it wont work
-// 		sleep(1);
-
-// 		printf("sending\n");
-
-// 		send_keyevent(KEY_A, ACTION_DOWN);
-// 		send_keyevent(KEY_A, ACTION_UP);
-
-// 		send_click_events();
-
-// 		sleep(2);
-// 		/* Destroy the input device */
-// 	    ioctl(uinp_fd, UI_DEV_DESTROY);
-// 	    /* Close the UINPUT device */
-// 	    close(uinp_fd);
-// 	}else{
-// 		printf("not sending\n");
-// 	}
-
-// }
 
 
 

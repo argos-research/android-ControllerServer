@@ -18,7 +18,7 @@
 	#5. java -Djava.library.path=. JniTestCall
 
 3. RUN THIS in case that you have made some local changes which have nothing to do with the change of the native declaration methods! If you have done some changes to those methods, please see 2.
-	1. gcc -o libuInputJNI.so uInputJNI.c -shared -fpic -I/usr/lib/jvm/java-8-openjdk-amd64/include -I/usr/lib/jvm/java-8-openjdk-amd64/include/linux
+	1. gcc -o libuInputJNI.so utils_uInputJNI.c -shared -fpic -I/usr/lib/jvm/java-8-openjdk-amd64/include -I/usr/lib/jvm/java-8-openjdk-amd64/include/linux  
 
 helper links:
 	http://stackoverflow.com/questions/3950635/how-to-compile-dynamic-library-for-a-jni-application-on-linux

@@ -9,7 +9,7 @@ public class uInputJNI {
 	static {                                                                     
         try {                                                                  
            System.loadLibrary( "uInputJNI" );  
-           System.out.println("uInputJNI library succesfully loaded.");
+           //System.out.println("uInputJNI library succesfully loaded.");
         }                                                                      
         catch( UnsatisfiedLinkError e ) {                                      
            System.err.println(                                                 
@@ -36,13 +36,14 @@ public class uInputJNI {
 			              "Could not initilize the uInput device." ); 
 			           System.exit(1); 
 			}else{
-				System.out.println("UInput device succesfully initialized.");
+				//System.out.println("UInput device succesfully initialized.");
 				myIntance.setUInputDeviceInitilized(true);
 			}
 				
-		}else{
-			System.out.println("UInput is initialized so will be reused.");
 		}
+		// else{
+		// 	System.out.println("UInput is initialized so will be reused.");
+		// }
 		
 		return myIntance;
 	}
