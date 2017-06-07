@@ -361,12 +361,14 @@ public class Utils{
 
 	                    if (inetAddr.isSiteLocalAddress()) {
 	                        // Found non-loopback site-local address. Return it immediately...
-	                        return inetAddr;
+	                    	if(!inetAddr.toString().contains("f")) //return only the local IPv4 address
+	                    		return inetAddr;
 	                    }
 	                    else if (candidateAddress == null) {
 	                        // Found non-loopback address, but not necessarily site-local.
 	                        // Store it as a candidate to be returned if site-local address is not subsequently found...
-	                        candidateAddress = inetAddr;
+	                        if(!inetAddr.toString().contains("f")) //return only the local IPv4 address
+	                        	candidateAddress = inetAddr;
 	                        // Note that we don't repeatedly assign non-loopback non-site-local addresses as candidates,
 	                        // only the first. For subsequent iterations, candidate will be non-null.
 	                    }
@@ -378,7 +380,8 @@ public class Utils{
 	            // Server might have a non-site-local address assigned to its NIC (or it might be running
 	            // IPv6 which deprecates the "site-local" concept).
 	            // Return this non-loopback candidate address...
-	            return candidateAddress;
+	            if(!candidateAddress.toString().contains("f")) //return only the local IPv4 address
+	            	return candidateAddress;
 	        }
 	        // At this point, we did not find a non-loopback address.
 	        // Fall back to returning whatever InetAddress.getLocalHost() returns...
