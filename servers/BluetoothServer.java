@@ -4,10 +4,14 @@ package servers;
 import java.io.*;
 import utils.Utils;
 
-import java.util.*;
 import javax.microedition.io.*;
+
+import org.json.JSONObject;
+
+import httpClient.HttpRequest;
+import httpClient.HttpRequest.IJsonHandler;
+
 import javax.bluetooth.*;
-import javax.bluetooth.UUID;
 
 
 public class BluetoothServer extends Server{
@@ -49,13 +53,32 @@ public class BluetoothServer extends Server{
 	
 	@Override
 	public void sendLogic() {
-		String greeting = (i++) + " JSR-82 RFCOMM server says hello\n";
-		try {
-			dos.write( greeting.getBytes() );
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}		//
+//		String greeting = (i++) + " JSR-82 RFCOMM server says hello\n";
+//		try {
+//			dos.write( greeting.getBytes() );
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+		
+		//NEW
+		HttpRequest.get(new IJsonHandler() {
+			
+			@Override
+			public void onError(Exception error) {
+		        updateUtilsServerInfos(String.format("There is a problem with the local communication with the SD2 HTTP API. HTTP GET failure: %s. %s", error.toString(),serverInfo));
+			}
+			
+			@Override
+			public void onComplete(JSONObject JSON) {
+				try {
+					dos.write(JSON.toString().getBytes());
+				} catch (IOException e) {
+					updateUtilsServerInfos(String.format("Unable to send to the client failure: %s. \n%s", e.toString(),serverInfo));
+				}
+			}
+			
+		}).doInBackround();
 		
 	}
 
@@ -64,22 +87,17 @@ public class BluetoothServer extends Server{
 		final String url = "btspp://localhost:" + uuid +
   //  					new UUID( 0x1101 ).toString() + 
         				";name=File Server";
-        StreamConnectionNotifier service = null;
-        
-        InputStreamReader daf = new InputStreamReader(System.in);
-        BufferedReader sd = new BufferedReader(daf);   
-        
-		try {
-			service =  (StreamConnectionNotifier) Connector.open( url );
-			StreamConnection con = 
-	        		(StreamConnection) service.acceptAndOpen();
-	        dos = con.openOutputStream();
-	        InputStream dis = con.openInputStream();
+		StreamConnectionNotifier service = null;
+        try {
+
+        	service								= (StreamConnectionNotifier) Connector.open( url );
+        	StreamConnection con	 			= (StreamConnection) service.acceptAndOpen();
+	        dos 								= con.openOutputStream();
+	        InputStream dis 					= con.openInputStream();
 	        
+	        RemoteDevice dev 					= RemoteDevice.getRemoteDevice(con); 
 
-	        RemoteDevice dev = RemoteDevice.getRemoteDevice(con); 
-
-	        clientSocketAddress = dev.getBluetoothAddress();
+	        clientSocketAddress	 				= dev.getBluetoothAddress();
 	        
 	        Utils.getSingletonInstance().setClientAddress(clientSocketAddress);
 	        //start the parallel sending thread
@@ -95,7 +113,7 @@ public class BluetoothServer extends Server{
 	        while(true){
 	        	try{
 	        		byte buffer[] = new byte[1024];
-			    	int bytes_read = dis.read( buffer );     //holds here and wait for the client
+			    	dis.read( buffer );     //holds here and wait for the client
 			    	String JSONinput = new String(buffer);
 			    	//System.out.println(JSONinput);
 			    	Utils.getSingletonInstance().handleInput(JSONinput);
@@ -104,7 +122,7 @@ public class BluetoothServer extends Server{
 	        		Utils.getSingletonInstance().resetAllValues();
 	        		
 	        		Utils.getSingletonInstance().setActiveConnectionType(Server.Type.Nothing);
-					super.updateUtilsServerInfos(String.format("The client has disconected... %s",this.serverInfo));
+					super.updateUtilsServerInfos(String.format("The client has disconnected... %s",this.serverInfo));
 					super.stopSendingThread();
 					//con.close();
 					service.close();
@@ -118,38 +136,15 @@ public class BluetoothServer extends Server{
 	        }
 			 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} finally {
 			try {
 				if(service != null)
 					service.close();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
-       
 	}
-
-//    public static void main( String args[] ) {
-//    	System.out.print("\033[H\033[2J"); //not working in eclipse. Flushes the screen
-//	    System.out.flush();
-//    	int isSending = Integer.parseInt(args[0]);
-//       	try {
-//
-//    	    LocalDevice local = LocalDevice.getLocalDevice();
-//	        System.out.println("Server Started:\n"
-//	              +local.getBluetoothAddress()
-//	    		+"\n"+local.getFriendlyName()); 
-//		
-//	        
-//			BluetoothServer ff = new BluetoothServer(isSending == 1);
-//	    	ff.startserver(); 
-//		    
-//	    }catch (Exception e) {
-//	    	System.err.print(e.toString());
-//	    }
-//    }
 } 
 

@@ -13,7 +13,7 @@ if [ ! -d "bin" ]; then
 fi
 
 #working from EVERYTHING from the main dir!
-javac -d bin/ -cp libs/java-json.jar:libs/bluecove-2.1.0.jar:libs/bluecove-emu-2.1.0.jar:libs/bluecove-gpl-2.1.0.jar utils/*.java servers/*.java 
+javac -d bin/ -cp libs/java-json.jar:libs/bluecove-2.1.0.jar:libs/bluecove-emu-2.1.0.jar:libs/bluecove-gpl-2.1.0.jar utils/*.java httpClient/*.java servers/*.java 
 
 #don't continue from this point if there were some build failures 
 if [ $? -ne 0 ]; then
