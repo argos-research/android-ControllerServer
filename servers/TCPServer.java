@@ -9,6 +9,11 @@ import java.net.*;
 import java.io.*;
 
 import org.json.JSONException;
+import org.json.JSONObject;
+
+import httpClient.HttpRequest;
+import httpClient.HttpRequest.IJsonHandler;
+
 
 public class TCPServer extends Server {
 private ServerSocket serverSocket;
@@ -17,8 +22,6 @@ private volatile Socket socket;
 
 private volatile String serverInfo = "";
 
-//TODO remove
-private volatile int i = 0;
 
 private String clientSocketAddress = "";
 
@@ -44,20 +47,29 @@ private String clientSocketAddress = "";
 
 	@Override
 	public void sendLogic() {
-		//System.out.println("SEND TCP called");
 		
-		String greeting = (i++) + " TCP" + getSocket().getLocalSocketAddress() +"\n";
-		
-		DataOutputStream out;
-		try {
-			out = new DataOutputStream(getSocket().getOutputStream());
+		HttpRequest.get(new IJsonHandler() {
 			
-			out.writeUTF(greeting);
-	        out.flush();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+			@Override
+			public void onError(Exception error) {
+		        updateUtilsServerInfos(String.format("There is a problem with the local communication with the SD2 HTTP API. HTTP GET failure: %s. %s", error.toString(),serverInfo));
+			}
+			
+			@Override
+			public void onComplete(JSONObject JSON) {
+				DataOutputStream out;
+				try {
+					out = new DataOutputStream(getSocket().getOutputStream());
+					
+					out.writeUTF(JSON.toString());
+					
+			        //out.flush();
+				} catch (IOException e) {
+					updateUtilsServerInfos(String.format("Unable to send to the client failure: %s. \n%s", e.toString(),serverInfo));
+				}
+			}
+			
+		}).doInBackround();
 		
 	}
 	
@@ -75,63 +87,44 @@ private String clientSocketAddress = "";
           clientSocketAddress = clientSocketAddress.substring(1,clientSocketAddress.length()); //remove the bullshit
           Utils.getSingletonInstance().setClientAddress(clientSocketAddress);
           
-          //start the parallel sending thread
-          super.startSendingThread();
-
           Utils.getSingletonInstance().setActiveConnectionType(Server.Type.TCP);
           super.updateUtilsServerInfos(String.format("%s Connection established with %s.",this.serverInfo, this.getSocket().getRemoteSocketAddress()));
           Utils.getSingletonInstance().resetAllValues();
           
           super.createUInputDevice(); //initialize the device if it not currently active
           
-          long lastSentMilis = 0, currentTime = 0;
-          Thread sendThread;
           while(socket.isConnected()) {
-             // BEST VERSION!!!
             DataInputStream in = new DataInputStream(getSocket().getInputStream());
             
             //System.out.println(in.readUTF());
             try{
             	//super.handleInput(in.readUTF());
-            	Utils.getSingletonInstance().handleInput(in.readUTF());
+            	String JSONString = in.readUTF();
+            	Utils.getSingletonInstance().handleInput(JSONString);
             	
             	//Asynchrony call is NOT POSSIBLE here as above => the bluetooth approach
             	//start it on thread here and the input on the client
-//            	
-            	
- //           	currentTime = System.currentTimeMillis();
-//    			if(lastSentMilis == 0 || (currentTime - lastSentMilis > ServerSettings.SEND_INTERVAL_MILIS)){ //don't overload the output stream
-//    				//according to http://stackoverflow.com/questions/14494352/can-you-write-to-a-sockets-input-and-output-stream-at-the-same-time
-//                    // read should be in a separate thread
-//    				// this optimizes twice the speed of receiving!!!!
-//    				
-//    				sendThread = new Thread(new Runnable() {
-//						
-//						@Override
-//						public void run() {
-//							//System.out.println("Sending");
-//		        			String greeting = (i++) + " Thank you for connecting to " + getSocket().getLocalSocketAddress() +"\n";
-//		        			try {
-//		   
-//		    		            DataOutputStream out = new DataOutputStream(getSocket().getOutputStream());
-//		    		            //out.write(greeting.getBytes(),0,greeting.length());
-//		    		            out.writeUTF(greeting);
-//		    		            out.flush();
-//		    		            //System.out.println("Send " + greeting);
-//							} catch (IOException e) {
-//								// TODO Auto-generated catch block
-//								e.printStackTrace();
-//							}		//if the client is not reading it it will block the stream									
-//						}
-//					});
-//    				sendThread.start();
-//    				lastSentMilis = currentTime;
-//    				
-//    			}
-	            
-	            //out.write(msg.getBytes(),0,msg.length()); //always with write and not writeUTF because it sends 
-	                                                      //funny data to the client!
-	
+           
+
+		    	//start sending only if the enter button is pressed.
+		    	/*
+		        Currently there is a bug in the SpeedDream 2 HTTP API which provides the data from the game. The bug is
+		        that when you choose to play a game and the loading screen is ready, you need to press Enter to start
+		        racing. Unfortunately, in this time the HTTP socket will be initialized but if you try to send a HTTP GET,
+		        this will force the game to crash and it can even harm you PC. That is why you will need to press the
+		        'start game' button in the main activity, which will send a simple "enter" key press which will trigger
+		        the game to start and will also start the sending thread on the server side which will start sending
+		        the provided JSON from the SP2 HTTP API.
+		         */
+		    	try{
+			    	if(Utils.getSingletonInstance().getKeyEvent(JSONString) == uInputValuesHolder.KEY_ENTER){
+			    		//start the parallel sending thread
+				        super.startSendingThread();
+			    	}
+		    	} catch (JSONException je){
+		    		//something went wrong with reading the value
+					super.updateUtilsServerInfos(String.format("The client is not sending proper JSON files... %s",this.serverInfo));
+		    	}
             	
 	           
 	            
@@ -179,37 +172,9 @@ private String clientSocketAddress = "";
     	  super.stopSendingThread();
     	  ex.printStackTrace();
     	  //super.destroyUInputDevice();
-    	  //System.exit(1);
       }
    }
 	   
 	
-	
-	
-
-	
-	
-//	public static void main(String [] args) {
-//	   System.out.print("\033[H\033[2J"); //not working in eclipse but works in terminal. Flushes the screen
-//	   System.out.flush();
-//	   
-//	   int port = Integer.parseInt(args[0]);
-//	   
-//	   try {
-//	      Thread t = new TCPServer(port);
-//	      t.start();
-//	      //http://stackoverflow.com/questions/27381021/detect-a-key-press-in-console
-//		    
-//	      
-//	      TerminalListener terminalListener = new TerminalListener();
-//	      terminalListener.start();
-//	      
-//	   }catch(IOException e) {
-//		   System.err.println("Could start the main TCP server thread. Check if the port "+port+" is not in use.");
-//	      e.printStackTrace();
-//	   }
-//
-//         
-//	}
 	
 }
