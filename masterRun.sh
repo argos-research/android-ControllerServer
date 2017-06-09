@@ -12,12 +12,23 @@ if [ ! -d "bin" ]; then
 	echo "Creating new bin folder."
 fi
 
+#complile the JNI code
+cd jniLibs/
+gcc -o libuInputJNI.so utils_uInputJNI.c -shared -fpic -I/usr/lib/jvm/java-8-openjdk-amd64/include -I/usr/lib/jvm/java-8-openjdk-amd64/include/linux 
+#don't continue from this point if there were some build failures 
+if [ $? -ne 0 ]; then
+	echo -e "\e[41mJNI ERROR:\e[49m There were some build failures!"
+	exit 1
+fi
+
+cd ../
+
 #working from EVERYTHING from the main dir!
 javac -d bin/ -cp libs/java-json.jar:libs/bluecove-2.1.0.jar:libs/bluecove-emu-2.1.0.jar:libs/bluecove-gpl-2.1.0.jar utils/*.java httpClient/*.java servers/*.java 
 
 #don't continue from this point if there were some build failures 
 if [ $? -ne 0 ]; then
-	echo -e "\e[41mERROR:\e[49m There were some build failures!"
+	echo -e "\e[41mJAVAC ERROR:\e[49m There were some build failures!"
 	exit 1
 fi
 

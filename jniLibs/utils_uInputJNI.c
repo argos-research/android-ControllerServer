@@ -29,10 +29,10 @@ JNIEXPORT void JNICALL Java_utils_uInputJNI_trigger_1axis_1X_1event
     memset(&event, 0, sizeof(event));
     gettimeofday(&event.time, NULL);
     event.type = EV_ABS;
-    event.code = ABS_RX;
-    //event.code = REL_RX;
-    //event.value = -30; //TODO use jint here
-    event.value = step; //TODO use jint here
+    event.code = ABS_RX; 
+    //event.code = ABS_X;
+    
+    event.value = step; 
     write(uinp_fd, &event, sizeof(event));
 
     event.type = EV_SYN;
@@ -52,9 +52,9 @@ JNIEXPORT void JNICALL Java_utils_uInputJNI_trigger_1axis_1Y_1event
     gettimeofday(&event.time, NULL);
     event.type = EV_ABS;
     event.code = ABS_RY;
-    //event.code = REL_RY;
-    //event.value = 30; //TODO use jint here
-    event.value = step; //TODO use jint here
+    //event.code = ABS_Y;
+
+    event.value = step; 
     if(write(uinp_fd, &event, sizeof(event)) <0){
         //printf("Unable to write on the Y axis %s","asd");
     }
@@ -97,7 +97,7 @@ const char* try_to_find_uinput() {
 	      return paths[i];
 	    }
 	  }
-	  return NULL;
+	  return NULL; 
 
 }
 
@@ -108,6 +108,7 @@ const char* try_to_find_uinput() {
 int make_gamepad_MIT(){
   //static int abs[] = {ABS_X, ABS_Y, ABS_RX, ABS_RY};
 	static int abs[] = {ABS_RX, ABS_RY};
+  //static int abs[] = {ABS_X, ABS_Y};
       static int key[] = {BTN_SOUTH, BTN_EAST, BTN_NORTH, BTN_WEST, BTN_TL, BTN_TR, KEY_ENTER}; //KEY_ENTER is used because the SP2 HTTP server is not running OK and this will make my server to start the sedning Thread to the client. It won't be shown in the jstest-gtk as a joystic button!
       //from the model above values
         // key[0] = 304
