@@ -221,6 +221,8 @@ public class Utils{
 			initMilis = ob.getLong("Created time");
 		}
 		
+		
+		//optional for measuring the communication
 //		if(loopNumber == loops){ //last one
 //			lastMilis = ob.getLong("Created time");
 //			// i = 1;
@@ -233,7 +235,26 @@ public class Utils{
 		
 	}
 	
-	
+	/**
+	 * Checks whether a key press event is being sent to the server and if so, returns the code 
+	 * of it and triggers the key press.
+	 * 
+	 * @param JSON the received JSON
+	 * @return the int representation of the pressed Key event or -1 if there was a problem or 
+	 * 				   no Key event was in the received JSON
+	 */
+	public synchronized int getKeyEvent(JSONObject JSON){
+		if(JSON.has("Key")){
+			try {
+				uInputJNI.getSingletonInstance().trigger_single_key_click(JSON.getInt("Key"));
+				return JSON.getInt("Key");
+			} catch (JSONException e) {
+				return -1;
+			}
+		}else{
+			return -1;
+		}
+	}
 	
 	
 	
@@ -257,7 +278,9 @@ public class Utils{
 	}
 
 	
-	
+	public synchronized int getKeyEvent(String JSONString) throws JSONException{
+		return this.getKeyEvent(new JSONObject(JSONString));
+	}
 	
 	
 	public synchronized void resetAllValues(){
@@ -361,14 +384,13 @@ public class Utils{
 
 	                    if (inetAddr.isSiteLocalAddress()) {
 	                        // Found non-loopback site-local address. Return it immediately...
-	                    	if(!inetAddr.toString().contains("f")) //return only the local IPv4 address
+	                    	if(!inetAddr.toString().contains("f"))
 	                    		return inetAddr;
 	                    }
 	                    else if (candidateAddress == null) {
 	                        // Found non-loopback address, but not necessarily site-local.
 	                        // Store it as a candidate to be returned if site-local address is not subsequently found...
-	                        if(!inetAddr.toString().contains("f")) //return only the local IPv4 address
-	                        	candidateAddress = inetAddr;
+	                        candidateAddress = inetAddr;
 	                        // Note that we don't repeatedly assign non-loopback non-site-local addresses as candidates,
 	                        // only the first. For subsequent iterations, candidate will be non-null.
 	                    }
@@ -380,8 +402,7 @@ public class Utils{
 	            // Server might have a non-site-local address assigned to its NIC (or it might be running
 	            // IPv6 which deprecates the "site-local" concept).
 	            // Return this non-loopback candidate address...
-	            if(!candidateAddress.toString().contains("f")) //return only the local IPv4 address
-	            	return candidateAddress;
+	            return candidateAddress;
 	        }
 	        // At this point, we did not find a non-loopback address.
 	        // Fall back to returning whatever InetAddress.getLocalHost() returns...

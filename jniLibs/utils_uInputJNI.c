@@ -106,8 +106,9 @@ const char* try_to_find_uinput() {
 
 */
 int make_gamepad_MIT(){
-	static int abs[] = {ABS_X, ABS_Y, ABS_RX, ABS_RY};
-      static int key[] = {BTN_SOUTH, BTN_EAST, BTN_NORTH, BTN_WEST, BTN_SELECT, BTN_START};
+  //static int abs[] = {ABS_X, ABS_Y, ABS_RX, ABS_RY};
+	static int abs[] = {ABS_RX, ABS_RY};
+      static int key[] = {BTN_SOUTH, BTN_EAST, BTN_NORTH, BTN_WEST, BTN_TL, BTN_TR, KEY_ENTER}; //KEY_ENTER is used because the SP2 HTTP server is not running OK and this will make my server to start the sedning Thread to the client. It won't be shown in the jstest-gtk as a joystic button!
       //from the model above values
         // key[0] = 304
         // key[1] = 305
@@ -170,7 +171,7 @@ int make_gamepad_MIT(){
         printf("unable to write %s\n","UI_SET_EVBIT to EV_ABS");
       }
 
-      for (i = 0; i < 4; i++) {
+      for (i = 0; i < sizeof(abs)/sizeof(int); i++) {
         if(ioctl(uinp_fd, UI_SET_ABSBIT, abs[i]) < 0 ){
             printf("unable to write %s\n","UI_SET_ABSBIT to "+abs[i]);
         }

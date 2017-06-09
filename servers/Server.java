@@ -1,7 +1,5 @@
 package servers;
 
-import java.io.IOException;
-
 import org.json.JSONException;
 
 import utils.*;
@@ -105,6 +103,13 @@ public abstract class Server extends Thread{
 		senderThread = new Thread(new Runnable() {
 			@Override
 			public void run() {
+				//because of the bug in the SP2 HTTP API make sure you will wait at least 1,5 secunds in order the server to be initialized. TODO remove this when the HTTP API is fixed!
+				try {
+					Thread.sleep(1500);
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+				}
+				
 				while(isSending()){
 					sendLogic();
 					try {
@@ -130,7 +135,8 @@ public abstract class Server extends Thread{
 
 	public synchronized void stopSendingThread(){
 		this.keepSending = false;
-		senderThread.interrupt();
+		if(senderThread != null)
+			senderThread.interrupt();
 	}
 
 	public void destroyUInputDevice(){

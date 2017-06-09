@@ -2,10 +2,15 @@ package servers;
 
 //taken from 2. on 04.05 18:51
 import java.io.*;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+
 import utils.Utils;
+import utils.uInputValuesHolder;
 
 import javax.microedition.io.*;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import httpClient.HttpRequest;
@@ -100,9 +105,7 @@ public class BluetoothServer extends Server{
 	        clientSocketAddress	 				= dev.getBluetoothAddress();
 	        
 	        Utils.getSingletonInstance().setClientAddress(clientSocketAddress);
-	        //start the parallel sending thread
-	        super.startSendingThread();
-
+	        
 	        //System.out.println("Connection established with  " + getSocket().getRemoteSocketAddress());
 	        Utils.getSingletonInstance().setActiveConnectionType(Server.Type.Bluetooth);
 	        super.updateUtilsServerInfos(String.format("Connection established with %s. %s", clientSocketAddress,this.serverInfo));
@@ -117,6 +120,27 @@ public class BluetoothServer extends Server{
 			    	String JSONinput = new String(buffer);
 			    	//System.out.println(JSONinput);
 			    	Utils.getSingletonInstance().handleInput(JSONinput);
+			    	
+			    	//start sending only if the enter button is pressed.
+			    	/*
+			        Currently there is a bug in the SpeedDream 2 HTTP API which provides the data from the game. The bug is
+			        that when you choose to play a game and the loading screen is ready, you need to press Enter to start
+			        racing. Unfortunately, in this time the HTTP socket will be initialized but if you try to send a HTTP GET,
+			        this will force the game to crash and it can even harm you PC. That is why you will need to press the
+			        'start game' button in the main activity, which will send a simple "enter" key press which will trigger
+			        the game to start and will also start the sending thread on the server side which will start sending
+			        the provided JSON from the SP2 HTTP API.
+			         */
+			    	try{
+				    	if(Utils.getSingletonInstance().getKeyEvent(JSONinput) == uInputValuesHolder.KEY_ENTER){
+				    		//start the parallel sending thread
+					        super.startSendingThread();
+				    	}
+			    	} catch (JSONException je){
+			    		//something went wrong with reading the value
+						super.updateUtilsServerInfos(String.format("The client is not sending proper JSON files... %s",this.serverInfo));
+			    	}
+			    	
 
 	        	} catch (Exception e) {
 	        		Utils.getSingletonInstance().resetAllValues();
@@ -128,8 +152,7 @@ public class BluetoothServer extends Server{
 					service.close();
 					
 					// this.destroyUInputDevice();
-					this.run(); //keep in in the loop TODO consider just with another while
-					//break;
+					this.run(); //keep in in the loop 
 				}
 	        	
 	        	
@@ -145,6 +168,26 @@ public class BluetoothServer extends Server{
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	
+	public static boolean pingHost(String host, int port, int timeout) {
+		Socket socket = null;
+	    try  {
+	    	socket = new Socket();
+	        socket.connect(new InetSocketAddress(host, port), timeout);
+	        return true;
+	    } catch (IOException e) {
+	        return false; // Either timeout or unreachable or failed DNS lookup.
+	    } finally{
+	    	if(socket != null){
+	    		try {
+					socket.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+	    	}
+	    }
 	}
 } 
 
