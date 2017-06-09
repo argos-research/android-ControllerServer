@@ -7,7 +7,10 @@ import java.net.InetAddress;
 import java.net.SocketException;
 
 import org.json.JSONException;
+import org.json.JSONObject;
 
+import httpClient.HttpRequest;
+import httpClient.HttpRequest.IJsonHandler;
 import utils.*;
 
 public class UDPServer extends Server{
@@ -19,6 +22,8 @@ public class UDPServer extends Server{
   private int receiverPort;
   
   private volatile String serverInfo = "";
+  
+  private volatile boolean onceEvent = true;
   
   
   private UDPServer(int port, String additionalInformation){
@@ -34,22 +39,34 @@ public class UDPServer extends Server{
   
     @Override
     public void sendLogic() {
-      //System.out.println("SEND UDP called");
       
-      int i = 0;
-      byte[] sendData = new byte[1024];
-      String capitalizedSentence = "UDP "+ (i++);
-      sendData = capitalizedSentence.getBytes();
-      DatagramPacket sendPacket =
-      new DatagramPacket(sendData, sendData.length, this.IPAddress, receiverPort);
+//      int i = 0;
+//      byte[] sendData = new byte[1024];
+//      String capitalizedSentence = "UDP "+ (i++);
+//      sendData = capitalizedSentence.getBytes();
       
-      try {
-        this.serverSocket.send(sendPacket);
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-      super.stopSendingThread();
+      
+      HttpRequest.get(new IJsonHandler() {
+    
+    @Override
+    public void onError(Exception error) {
+      updateUtilsServerInfos(String.format("There is a problem with the local communication with the SD2 HTTP API. HTTP GET failure: %s. %s", error.toString(),serverInfo));
     }
+    
+    @Override
+    public void onComplete(JSONObject JSON) {
+      DatagramPacket sendPacket =
+              new DatagramPacket(JSON.toString().getBytes(), JSON.toString().length(), IPAddress, receiverPort);
+      try {
+            serverSocket.send(sendPacket);
+        } catch (IOException e) {
+          updateUtilsServerInfos(String.format("Unable to send to the client failure: %s. \n%s", e.toString(),serverInfo));
+          stopSendingThread();
+        }
+    }
+  }).doInBackround();
+      
+      
       
     }
 
@@ -83,13 +100,35 @@ public class UDPServer extends Server{
               
           String JSON  = new String( receivePacket.getData());
           
-          
-          
-          if(!super.isSending()){
+          if(onceEvent){
             Utils.getSingletonInstance().setActiveConnectionType(Server.Type.UDP);
+
+            //this below is not possible https://stackoverflow.com/questions/38157060/udp-server-client-java
+            //I need additional information on top of UDP to handle events if the client is 'connected'
             super.updateUtilsServerInfos(String.format("Connection established with %d.%s ", super.getServerPort(),this.serverInfo));
-            super.startSendingThread();
+            onceEvent = false;
           }
+          
+          //start sending only if the enter button is pressed.
+        /*
+          Currently there is a bug in the SpeedDream 2 HTTP API which provides the data from the game. The bug is
+          that when you choose to play a game and the loading screen is ready, you need to press Enter to start
+          racing. Unfortunately, in this time the HTTP socket will be initialized but if you try to send a HTTP GET,
+          this will force the game to crash and it can even harm you PC. That is why you will need to press the
+          'start game' button in the main activity, which will send a simple "enter" key press which will trigger
+          the game to start and will also start the sending thread on the server side which will start sending
+          the provided JSON from the SP2 HTTP API.
+           */
+        try{
+          if(Utils.getSingletonInstance().getKeyEvent(JSON) == uInputValuesHolder.KEY_ENTER){
+            //start the parallel sending thread
+              super.startSendingThread();
+          }
+        } catch (JSONException je){
+          //something went wrong with reading the value
+        super.updateUtilsServerInfos(String.format("The client is not sending proper JSON files... %s",this.serverInfo));
+        }
+          
           
         //the additional need of closing manually the connection because of the UDP way of work
           if(JSON.contains("close")){
@@ -99,6 +138,7 @@ public class UDPServer extends Server{
             Utils.getSingletonInstance().setActiveConnectionType(Server.Type.Nothing);
             super.updateUtilsServerInfos(String.format("The client has disconnected... %s",this.serverInfo));
             super.stopSendingThread();
+            onceEvent = true;
           }else{
             try{
                 Utils.getSingletonInstance().handleInput(JSON);
@@ -107,6 +147,7 @@ public class UDPServer extends Server{
                 super.updateUtilsServerInfos("The client is not sending JSON files so disconnecting... "+this.serverInfo);
                 Utils.getSingletonInstance().resetAllValues();
                 super.stopSendingThread();
+                onceEvent = true;
                 e.printStackTrace(); 
               }    
             }
@@ -114,35 +155,17 @@ public class UDPServer extends Server{
          }
         
         
-        
       } catch (SocketException e2) {
-          super.updateUtilsServerInfos("Unable to initialize the UDP socket... The server is NOT running.");
-          super.stopSendingThread();
-          e2.printStackTrace();
+        super.updateUtilsServerInfos("Unable to initialize the UDP socket... The server is NOT running.");
+        super.stopSendingThread();
+        onceEvent = true;
+        e2.printStackTrace();
         
-        //this below is not possible https://stackoverflow.com/questions/38157060/udp-server-client-java
-        //I need additional information on top of UDP to handle events if the client is 'connected'
       }
       
           
     }
     
   
-//    public static void main(String [] args) {
-//         System.out.print("\033[H\033[2J"); //not working in eclipse but works in terminal. Flushes the screen
-//         System.out.flush();
-//         
-//         int port = Integer.parseInt(args[0]);
-//         
-//         
-//          Thread t = new UDPServer(port);
-//          t.start();
-//          //http://stackoverflow.com/questions/27381021/detect-a-key-press-in-console
-//          
-//          
-//          TerminalListener terminalListener = new TerminalListener();
-//          terminalListener.start();
-//           
-//    }
 
 }

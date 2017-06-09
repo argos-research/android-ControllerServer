@@ -106,8 +106,9 @@ const char* try_to_find_uinput() {
 
 */
 int make_gamepad_MIT(){
-  //static int abs[] = {ABS_X, ABS_Y, ABS_RX, ABS_RY};
-	static int abs[] = {ABS_RX, ABS_RY};
+  //for some reason SP2 can't recognize the joystick if I use only the ABS_RX, ABS_RY. That is why I have to use it like this
+  static int abs[] = {ABS_X, ABS_Y, ABS_RX, ABS_RY};
+	//static int abs[] = {ABS_RX, ABS_RY};
   //static int abs[] = {ABS_X, ABS_Y};
       static int key[] = {BTN_SOUTH, BTN_EAST, BTN_NORTH, BTN_WEST, BTN_TL, BTN_TR, KEY_ENTER}; //KEY_ENTER is used because the SP2 HTTP server is not running OK and this will make my server to start the sedning Thread to the client. It won't be shown in the jstest-gtk as a joystic button!
       //from the model above values
