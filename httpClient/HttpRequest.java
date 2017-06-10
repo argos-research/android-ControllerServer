@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.net.URL;
 
 
@@ -48,18 +50,21 @@ public class HttpRequest{
 	
 	
 	public void doInBackround(){
-		String res = this.doInBackground();
-		if(res == null){
-			this.handleError(executionException);
-		}else{
-			if(jsonHandler != null){
-				try {
-					JSONObject JSON = new JSONObject(res);
-					jsonHandler.onComplete(JSON);
-				} catch (JSONException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-					handleError(e);
+		//only if the server has initialized the HTTP API server
+		if(this.pingHost(ServerSettings.SERVER_ADDRESS_IP,ServerSettings.SERVER_ADDRESS_PORT, ServerSettings.PING_TIMEOUT))	{	
+			String res = this.doInBackground();
+			if(res == null){
+				this.handleError(executionException);
+			}else{
+				if(jsonHandler != null){
+					try {
+						JSONObject JSON = new JSONObject(res);
+						jsonHandler.onComplete(JSON);
+					} catch (JSONException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+						handleError(e);
+					}
 				}
 			}
 		}
@@ -71,7 +76,7 @@ public class HttpRequest{
 		HttpURLConnection conn = null;
 		InputStream in = null;
 		try {
-			url = new URL(ServerSettings.SERVER_ADDRESS);
+			url = new URL(this.getServerAddress());
 			conn = (HttpURLConnection) url.openConnection();
 			conn.setRequestMethod(this.type.toString());
 			conn.setRequestProperty("Accept", "*/*"); //because of the funny encoding on the server side...
@@ -130,5 +135,27 @@ public class HttpRequest{
             errorHandler.onError(error);
     }
 	
+	private String getServerAddress(){
+		return String.format("http://%s:%d",ServerSettings.SERVER_ADDRESS_IP, ServerSettings.SERVER_ADDRESS_PORT);
+	}
 	
+	private boolean pingHost(String host, int port, int timeout) {
+	   Socket socket = null;
+	    try  {
+	    	socket = new Socket();
+	        socket.connect(new InetSocketAddress(host, port), timeout);
+	        return true;
+	    } catch (IOException e) {
+	        return false; // Either timeout or unreachable or failed DNS lookup.
+	    } finally{
+	    	if(socket != null){
+	    		try {
+					socket.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+	    	}
+	    }
+	}
 }
+

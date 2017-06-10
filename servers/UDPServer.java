@@ -55,14 +55,17 @@ public class UDPServer extends Server{
     
     @Override
     public void onComplete(JSONObject JSON) {
-      DatagramPacket sendPacket =
-              new DatagramPacket(JSON.toString().getBytes(), JSON.toString().length(), IPAddress, receiverPort);
-      try {
-            serverSocket.send(sendPacket);
-        } catch (IOException e) {
-          updateUtilsServerInfos(String.format("Unable to send to the client failure: %s. \n%s", e.toString(),serverInfo));
-          stopSendingThread();
-        }
+      //when the server has initialized the socket but the game has not started, it will send just an empty JSON: {} so here I will ignore it and not send it to the client
+      if(JSON.length() > 3){
+        DatagramPacket sendPacket =
+                new DatagramPacket(JSON.toString().getBytes(), JSON.toString().length(), IPAddress, receiverPort);
+        try {
+              serverSocket.send(sendPacket);
+          } catch (IOException e) {
+            updateUtilsServerInfos(String.format("Unable to send to the client failure: %s. \n%s", e.toString(),serverInfo));
+            stopSendingThread();
+          }
+      }
     }
   }).doInBackround();
       
@@ -106,6 +109,10 @@ public class UDPServer extends Server{
             //this below is not possible https://stackoverflow.com/questions/38157060/udp-server-client-java
             //I need additional information on top of UDP to handle events if the client is 'connected'
             super.updateUtilsServerInfos(String.format("Connection established with %d.%s ", super.getServerPort(),this.serverInfo));
+            
+            //start the parallel sending thread
+            super.startSendingThread();
+          
             onceEvent = false;
           }
           
@@ -119,15 +126,15 @@ public class UDPServer extends Server{
           the game to start and will also start the sending thread on the server side which will start sending
           the provided JSON from the SP2 HTTP API.
            */
-        try{
-          if(Utils.getSingletonInstance().getKeyEvent(JSON) == uInputValuesHolder.KEY_ENTER){
-            //start the parallel sending thread
-              super.startSendingThread();
-          }
-        } catch (JSONException je){
-          //something went wrong with reading the value
-        super.updateUtilsServerInfos(String.format("The client is not sending proper JSON files... %s",this.serverInfo));
-        }
+//        try{
+//          if(Utils.getSingletonInstance().getKeyEvent(JSON) == uInputValuesHolder.KEY_ENTER){
+//            //start the parallel sending thread
+//              super.startSendingThread();
+//          }
+//        } catch (JSONException je){
+//          //something went wrong with reading the value
+//        super.updateUtilsServerInfos(String.format("The client is not sending proper JSON files... %s",this.serverInfo));
+//        }
           
           
         //the additional need of closing manually the connection because of the UDP way of work
@@ -153,6 +160,7 @@ public class UDPServer extends Server{
             }
           
          }
+        
         
         
       } catch (SocketException e2) {

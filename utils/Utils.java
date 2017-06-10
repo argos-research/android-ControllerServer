@@ -175,6 +175,8 @@ public class Utils{
 		
 		currMilis = ob.getLong("Created time");
 		
+		this.getKeyEvent(ob);
+		
 		if(ob.has("Gyro data")){
 			mGyroData = ob.getJSONObject("Gyro data");
 			//trigger the one key that is send

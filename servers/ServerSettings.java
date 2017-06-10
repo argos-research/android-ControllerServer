@@ -3,11 +3,15 @@ package servers;
 public class ServerSettings {
 	
 	//the server location
-	public static final String SERVER_ADDRESS 	= "http://127.0.0.1:9080";
-	// network timeouts in ms
-    public static final int CONNECT_TIMEOUT 	= 500;
-    public static final int READ_TIMEOUT 		= 500;
+	public static final String SERVER_ADDRESS 		= "http://127.0.0.1:9080";
+	public static final String SERVER_ADDRESS_IP 	= "127.0.0.1";
+	public static final int SERVER_ADDRESS_PORT 	= 9080;
 	
+	// network timeouts in ms
+    public static final int CONNECT_TIMEOUT 		= 500;
+    public static final int READ_TIMEOUT 			= 500;
+    public static final int PING_TIMEOUT 			= 500;
+    
 	//marks the duration between the sending packets 
 	public static final long SEND_INTERVAL_MILIS = 500;
 	

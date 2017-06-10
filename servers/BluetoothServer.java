@@ -76,10 +76,13 @@ public class BluetoothServer extends Server{
 			
 			@Override
 			public void onComplete(JSONObject JSON) {
-				try {
-					dos.write(JSON.toString().getBytes());
-				} catch (IOException e) {
-					updateUtilsServerInfos(String.format("Unable to send to the client failure: %s. \n%s", e.toString(),serverInfo));
+				//when the server has initialized the socket but the game has not started, it will send just an empty JSON: {} so here I will ignore it and not send it to the client
+				if(JSON.length() > 3){
+					try {
+						dos.write(JSON.toString().getBytes());
+					} catch (IOException e) {
+						updateUtilsServerInfos(String.format("Unable to send to the client failure: %s. \n%s", e.toString(),serverInfo));
+					}
 				}
 			}
 			
@@ -111,6 +114,9 @@ public class BluetoothServer extends Server{
 	        super.updateUtilsServerInfos(String.format("Connection established with %s. %s", clientSocketAddress,this.serverInfo));
 	        Utils.getSingletonInstance().resetAllValues();
 	        
+	        //start the parallel sending thread
+	        super.startSendingThread();
+		      
 	        super.createUInputDevice(); //initialize the device if it not currently active
 	        
 	        while(true){
@@ -131,15 +137,15 @@ public class BluetoothServer extends Server{
 			        the game to start and will also start the sending thread on the server side which will start sending
 			        the provided JSON from the SP2 HTTP API.
 			         */
-			    	try{
-				    	if(Utils.getSingletonInstance().getKeyEvent(JSONinput) == uInputValuesHolder.KEY_ENTER){
-				    		//start the parallel sending thread
-					        super.startSendingThread();
-				    	}
-			    	} catch (JSONException je){
-			    		//something went wrong with reading the value
-						super.updateUtilsServerInfos(String.format("The client is not sending proper JSON files... %s",this.serverInfo));
-			    	}
+//			    	try{
+//				    	if(Utils.getSingletonInstance().getKeyEvent(JSONinput) == uInputValuesHolder.KEY_ENTER){
+//				    		//start the parallel sending thread
+//					        super.startSendingThread();
+//				    	}
+//			    	} catch (JSONException je){
+//			    		//something went wrong with reading the value
+//						super.updateUtilsServerInfos(String.format("The client is not sending proper JSON files... %s",this.serverInfo));
+//			    	}
 			    	
 
 	        	} catch (Exception e) {
