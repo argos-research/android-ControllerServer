@@ -15,6 +15,7 @@ fi
 #complile the JNI code
 cd jniLibs/
 gcc -o libuInputJNI.so utils_uInputJNI.c -shared -fpic -I/usr/lib/jvm/java-8-openjdk-amd64/include -I/usr/lib/jvm/java-8-openjdk-amd64/include/linux 
+
 #don't continue from this point if there were some build failures 
 if [ $? -ne 0 ]; then
 	echo -e "\e[41mJNI ERROR:\e[49m There were some build failures!"
