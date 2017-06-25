@@ -83,6 +83,13 @@ public abstract class Server extends Thread{
 		
 	}
 	
+	/**
+	 * String getter with {@link ServerSettings} ANSI_GREEN color if it is the current 
+	 * active connection or {@link ServerSettings} ANSI_YELLOW otherwise.
+	 *
+	 * @param technology the name of some the requested technology.
+	 * @return colored representation of the requested technology. 
+	 */
 	private synchronized String getActiveTechnologyTag(String technology){
 		if(Utils.getSingletonInstance().getActiveConnectionType().toString().contains(technology.trim()))
 			return String.format("[%s%s%s]: ",ServerSettings.ANSI_GREEN,technology,ServerSettings.ANSI_RESET);
@@ -96,26 +103,26 @@ public abstract class Server extends Thread{
 	 * It will send data with a delay marked in {@link ServerSettings}
 	 * <b>SEND_INTERVAL_MILIS</b>.
 	 * 
-	 * @param sendingRunnable
 	 */
 	public void startSendingThread(){
 		this.keepSending = true;
 		senderThread = new Thread(new Runnable() {
 			@Override
 			public void run() {
-				//because of the bug in the SP2 HTTP API make sure you will wait at least 1,5 secunds in order the server to be initialized. TODO remove this when the HTTP API is fixed!
-				try {
-					Thread.sleep(1500);
-				} catch (InterruptedException e1) {
-					e1.printStackTrace();
-				}
+				//because of the bug in the SP2 HTTP API make sure you will wait at least 1,5 seconds in order the server to be initialized. TODO remove this when the HTTP API is fixed!
+				//should be FIXED TODO CHECK IT!
+				// try {
+				// 	Thread.sleep(1500);
+				// } catch (InterruptedException e1) {
+				// 	e1.printStackTrace();
+				// }
 				
 				while(isSending()){
 					sendLogic();
 					try {
 						Thread.sleep(ServerSettings.SEND_INTERVAL_MILIS);
 					} catch (InterruptedException e) {
-						//System.out.println("Succesfully disconnected.");
+						//System.out.println("Successfully disconnected.");
 						keepSending = false;
 					}
 				}
@@ -130,14 +137,13 @@ public abstract class Server extends Thread{
 		return this.keepSending;
 	}
 	
-	public abstract void sendLogic();
 	
-
 	public synchronized void stopSendingThread(){
 		this.keepSending = false;
 		if(senderThread != null)
 			senderThread.interrupt();
 	}
+
 
 	public void destroyUInputDevice(){
 		uInputJNI.getSingletonInstance().destroyUInputDevice();
@@ -157,15 +163,36 @@ public abstract class Server extends Thread{
 	}
 	
 	
+	/**
+	 * Simplification of calling "Utils.getSingletonInstance().handleInput(msg)".
+	 * 
+	 * @param msg the received String message.
+	 * @throws JSONException if the message can not be converted into a JSON object.
+	 * @see Utils
+	 */
 	public void handleInput(String msg) throws JSONException{
 		Utils.getSingletonInstance().handleInput(msg);
 	}
 	
-	
-	
+
+
+	/*********************************** Abstract methods ***********************************/
+
+	/**
+	 * This method should be over written in every child class.
+	 * It holds the logic behind the <i>received</i> event.
+	 */
 	@Override
 	public abstract void run();
 
-	
+
+	/**
+	 * This method should be over written in every child class.
+	 * It holds the logic behind the <i>sent</i> event and
+	 * it will be called from once every {@link ServerSettings}
+	 * SEND_INTERVAL_MILIS after the client is connected to 
+	 * some of the servers.
+	 */
+	public abstract void sendLogic();
 	
 }

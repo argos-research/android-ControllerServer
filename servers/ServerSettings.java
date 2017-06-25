@@ -1,9 +1,14 @@
 package servers;
 
+/**
+ * A holder class for storing the main and most 
+ * important server information.
+ * @author Konstantin Vankov 
+ */
 public class ServerSettings {
 	
 	//the server location
-	public static final String SERVER_ADDRESS 		= "http://127.0.0.1:9080";
+	//public static final String SERVER_ADDRESS 		= "http://127.0.0.1:9080";
 	public static final String SERVER_ADDRESS_IP 	= "127.0.0.1";
 	public static final int SERVER_ADDRESS_PORT 	= 9080;
 	

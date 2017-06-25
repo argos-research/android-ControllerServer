@@ -13,20 +13,29 @@ import servers.Server.Type;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+/**
+ * The main utilities class in this application for 
+ * various of tasks such as measuring the data flow, 
+ * handling the received JSONs, updating the 
+ * information on the terminal etc.
+ * 
+ * @author Konstantin Vankov 
+ */
 public class Utils{
 
 	private long packageCounter = 0;
+
 	private long initMilis,lastMilis,currMilis; //used for measuring the data flow
 	private double bytesReceived = 0;
+
 	private String clientAddress = "";
 
-	private String cutJSON = "";
+	private String cutJSON = ""; 	//it was used if some JSONs are sent over the network as a single traffic flow and the last of them is cut at some character.
 	
-	
-	//private uInputJNI mUInputJNI;
-	
+	//the received Gyro data
 	private JSONObject mGyroData = null;
 
+	//the received Accelerometer data
 	private JSONObject mAccData = null;
 	
 	// For storing where the server is running
@@ -60,7 +69,7 @@ public class Utils{
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			System.err.println("Unable to retrive the server's local LAN address.");
+			System.err.println("Unable to retrieve the server's local LAN address.");
 		}
 	}
 	
@@ -157,7 +166,7 @@ public class Utils{
 	
 	public synchronized JSONObject toJSON(String input) throws JSONException{
 		//System.out.println(input);
-		bytesReceived += input.getBytes().length;	//for the speed measurment
+		bytesReceived += input.getBytes().length;	//for the speed measurement
 		return new JSONObject(input);
 	}
 
@@ -165,7 +174,17 @@ public class Utils{
 		this.handleInput(this.toJSON(JSONString));
 	}
 	
-	//new version
+	/**
+	 * Handles the coming client's upstream to some of the
+	 * running servers. It handles the gyro, accelerometer 
+	 * and send key presses events. It also measures the 
+	 * received packets and optionally it can measures
+	 * also the spent time on receiving some packets and the
+ 	 * amount of time spent as well as the average speed.
+  	 *
+	 * @param ob the received {@link JSONObject} instance.
+	 * @throws JSONException if the some information was not able to be extracted. 
+	 */
 	public synchronized void handleInput(JSONObject ob) throws JSONException{
 		//int loopNumber = ob.getInt("Loop");
 		//String loopNumber = (String) ob.get("Loop");
@@ -192,7 +211,9 @@ public class Utils{
 			
 		}
 		//TODO consider something cleaner
-		//int multiplier = 5;
+		/*because the uInput initialization inits the axis of the mapped accelerometer 
+		  values from 0 to 1024 and in the same time the client is sending values 
+		  between 0 and 16 it has to be scaled to the value of 0 to 1024*/
 		int multiplier = 64;
 		//int multiplier = 4095;
 		
@@ -366,6 +387,17 @@ public class Utils{
     	return lastMilis > 0 ? "\nIt took " + getTimeSpent() + " for receiving "+bytesReceived/1000000+" MB.\n" : "";
     }
 
+    /**
+     * Although all of checks in the {@link Tester#getLocalHostLANAddress()},
+     * some loopback addresses or IPv6 may be return which is not desired.
+     * That is why here this is tested.
+     * @param address some interface address.
+     * @return true if the given address is not loopback or IPv6.
+     */
+    private boolean isRightAddress(String address){
+        return address.indexOf("127") != 0 && !address.contains("f");
+    }
+
     //found on http://stackoverflow.com/questions/9481865/getting-the-ip-address-of-the-current-machine-using-java
 	/**
 	 * TODO change it to returns only the IPv4 version of the local IP interface.
@@ -386,13 +418,13 @@ public class Utils{
 
 	                    if (inetAddr.isSiteLocalAddress()) {
 	                        // Found non-loopback site-local address. Return it immediately...
-	                    	if(!inetAddr.toString().contains("f"))
+	                    	if(isRightAddress(inetAddr.toString()))
 	                    		return inetAddr;
 	                    }
 	                    else if (candidateAddress == null) {
 	                        // Found non-loopback address, but not necessarily site-local.
 	                        // Store it as a candidate to be returned if site-local address is not subsequently found...
-	                        if(!inetAddr.toString().contains("f"))
+	                        if(isRightAddress(inetAddr.toString()))
 	                        	candidateAddress = inetAddr;
 	                        // Note that we don't repeatedly assign non-loopback non-site-local addresses as candidates,
 	                        // only the first. For subsequent iterations, candidate will be non-null.

@@ -13,6 +13,12 @@ import httpClient.HttpRequest;
 import httpClient.HttpRequest.IJsonHandler;
 import utils.*;
 
+/**
+ * The UDP server class used for UDP communication
+ * between the client and the server. 
+ * TODO REMOVE THESE "THE"s!
+ * @author Konstantin Vankov 
+ */
 public class UDPServer extends Server{
 
   private InetAddress IPAddress;
@@ -40,43 +46,32 @@ public class UDPServer extends Server{
     @Override
     public void sendLogic() {
       
-//      int i = 0;
-//      byte[] sendData = new byte[1024];
-//      String capitalizedSentence = "UDP "+ (i++);
-//      sendData = capitalizedSentence.getBytes();
-      
-      
       HttpRequest.get(new IJsonHandler() {
     
-    @Override
-    public void onError(Exception error) {
-      updateUtilsServerInfos(String.format("There is a problem with the local communication with the SD2 HTTP API. HTTP GET failure: %s. %s", error.toString(),serverInfo));
-    }
-    
-    @Override
-    public void onComplete(JSONObject JSON) {
-      //when the server has initialized the socket but the game has not started, it will send just an empty JSON: {} so here I will ignore it and not send it to the client
-      if(JSON.length() > 3){
-        DatagramPacket sendPacket =
-                new DatagramPacket(JSON.toString().getBytes(), JSON.toString().length(), IPAddress, receiverPort);
-        try {
-              serverSocket.send(sendPacket);
-          } catch (IOException e) {
-            updateUtilsServerInfos(String.format("Unable to send to the client failure: %s. \n%s", e.toString(),serverInfo));
-            stopSendingThread();
+        @Override
+        public void onError(Exception error) {
+          updateUtilsServerInfos(String.format("There is a problem with the local communication with the SD2 HTTP API. HTTP GET failure: %s. %s", error.toString(),serverInfo));
+        }
+        
+        @Override
+        public void onComplete(JSONObject JSON) {
+          //when the server has initialized the socket but the game has not started, it will send just an empty JSON: {} so here I will ignore it and not send it to the client
+          if(JSON.length() > 3){
+            DatagramPacket sendPacket =
+                    new DatagramPacket(JSON.toString().getBytes(), JSON.toString().length(), IPAddress, receiverPort);
+            try {
+                  serverSocket.send(sendPacket);
+              } catch (IOException e) {
+                updateUtilsServerInfos(String.format("Unable to send to the client failure: %s. \n%s", e.toString(),serverInfo));
+                stopSendingThread();
+              }
           }
-      }
-    }
-  }).doInBackround();
-      
-      
-      
+        }
+      }).doInBackround();
     }
 
     @Override
     public void run() {
-  //    System.out.println("\nWaiting for client on port "+
-  //             super.getServerPort() + "...");
       
       try {
         this.serverSocket = new DatagramSocket(super.getServerPort());
@@ -160,20 +155,14 @@ public class UDPServer extends Server{
             }
           
          }
-        
-        
-        
       } catch (SocketException e2) {
         super.updateUtilsServerInfos("Unable to initialize the UDP socket... The server is NOT running.");
         super.stopSendingThread();
         onceEvent = true;
         e2.printStackTrace();
         
-      }
-      
-          
+      } 
     }
     
-  
 
 }

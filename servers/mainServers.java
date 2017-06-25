@@ -8,6 +8,10 @@ import javax.bluetooth.BluetoothStateException;
 
 import utils.TerminalListener;
 
+/**
+  *
+  * The main "main" class for running everything.
+  */
 public class mainServers {
 
 	private static Thread TCPServer;
@@ -16,7 +20,7 @@ public class mainServers {
 
 
 	public static void main(String[] args) {
-		System.out.print("\033[H\033[2J"); //not working in eclipse but works in terminal. Flushes the screen
+		System.out.print("\033[H\033[2J"); //not working in eclipse but works in terminal. Flushes the screen (clear it)
 		System.out.flush();
 		
 		if(args.length != 2){
@@ -24,7 +28,8 @@ public class mainServers {
 			System.exit(1);
 		}
 
-		/** Initialize the uInput joystick at the beginning */
+		/** Initialize the uInput joystick at the beginning. Like this the instance of it will be created
+			at the very beginning which means, that you can start Speed Dream 2 right after the start of this server.*/
 		uInputJNI.getSingletonInstance().setupUInputDevice();
 
 		/** TCP part */
