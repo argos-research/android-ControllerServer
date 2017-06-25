@@ -392,7 +392,8 @@ public class Utils{
 	                    else if (candidateAddress == null) {
 	                        // Found non-loopback address, but not necessarily site-local.
 	                        // Store it as a candidate to be returned if site-local address is not subsequently found...
-	                        candidateAddress = inetAddr;
+	                        if(!inetAddr.toString().contains("f"))
+	                        	candidateAddress = inetAddr;
 	                        // Note that we don't repeatedly assign non-loopback non-site-local addresses as candidates,
 	                        // only the first. For subsequent iterations, candidate will be non-null.
 	                    }
