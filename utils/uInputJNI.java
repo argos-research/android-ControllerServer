@@ -1,10 +1,18 @@
 package utils;
 
+/**
+ * The uInput JNI class used for the Java <-> C communication.
+ * Within the C part of this class the uInput virtual joystick 
+ * will be created, used and on this application closing with
+ * {@link TerminalListener} it will be destroyed.
+ *
+ * @author Konstantin Vankov 
+ */
 public class uInputJNI {
 	
 	
 	/**
-	 * Load the JNI library at the very beginning
+	 * Load the JNI library at the very beginning.
 	 */
 	static {                                                                     
         try {                                                                  
@@ -32,9 +40,8 @@ public class uInputJNI {
 			myIntance = new uInputJNI(false);
 			//try to initialize the uInput device
 			if(!myIntance.setup_uinput_device()){
-				 System.err.println(                                                 
-			              "Could not initilize the uInput device." ); 
-			           System.exit(1); 
+				System.err.println("Could not initialize the uInput device."); 
+	            System.exit(1); 
 			}else{
 				//System.out.println("UInput device succesfully initialized.");
 				myIntance.setUInputDeviceInitilized(true);
@@ -96,9 +103,8 @@ public class uInputJNI {
 	/**
 	 * In my model I have 4 axis of movement - forward, backward, left, right.
 	 * The idea is to have 10 'steps' for each of these axis in order to 
-	 * map if the accelerometer is only 60% rotated in some direction or 
-	 * if its only 10% (in this case the 'step' is 10%). To do so, I will
-	 * have 10 possible values for each of these 4 axis. This means, that
+	 * map the accelerometer movement in any direction properly. To do so,
+	 * I have 10 possible values for each of these 4 axis. This means, that
 	 * I will have 10^4 possibilities => I will need log2(10^4) bit to 
 	 * send properly my accelerometer data to the server. log2(10^4) is 
 	 * ~ 13.289 => I can map my accelerometer values to 14 bit. The first
@@ -124,7 +130,9 @@ public class uInputJNI {
 	 */
 	public native void trigger_axis_Y_event(int step);
 	
-	//TODO shutdown the device
+	/**
+	 * Destroys the created uInput virtual joystick device (pointer).
+	 */
 	public native void close_device();
 
 }

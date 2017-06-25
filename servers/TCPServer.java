@@ -1,6 +1,3 @@
-
-//taken from 5. on 04.05 18:51
-
 package servers;
 
 import utils.*;
@@ -15,14 +12,21 @@ import httpClient.HttpRequest;
 import httpClient.HttpRequest.IJsonHandler;
 
 
+/**
+ * The TCP server class used for TCP communication
+ * between the client and the server. 
+ * TODO REMOVE THESE "THE"s!
+ * @author Konstantin Vankov 
+ */
 public class TCPServer extends Server {
 private ServerSocket serverSocket;
 
 private volatile Socket socket;
 
+/*Stores the important server information - IP address and port number of the running TCP server*/
 private volatile String serverInfo = "";
 
-
+/*Stores the address of the connected client socket - IP and port number.*/
 private String clientSocketAddress = "";
 
 
@@ -36,6 +40,8 @@ private String clientSocketAddress = "";
 		this(port,String.format("Running on %s:%d.",Utils.getSingletonInstance().getLocalAddress().getHostAddress(),port));
 		
 		serverSocket = new ServerSocket(port);
+
+		//you can use timeout if you want to but it is not suggested
 		//serverSocket.setSoTimeout(30*1000);
 		
 	 
@@ -77,16 +83,13 @@ private String clientSocketAddress = "";
 	
 	@Override
 	public void run() {
-		//not closing after each FOR NOW ONLY THIS VERSION!
-//      System.out.println("\nWaiting for client on port "+
-//         serverSocket.getLocalPort() + "...");
       
       try {
     	  socket = serverSocket.accept();
 
            
           clientSocketAddress = getSocket().getRemoteSocketAddress().toString();
-          clientSocketAddress = clientSocketAddress.substring(1,clientSocketAddress.length()); //remove the bullshit
+          clientSocketAddress = clientSocketAddress.substring(1,clientSocketAddress.length()); //removes the "\" from the beginning
           Utils.getSingletonInstance().setClientAddress(clientSocketAddress);
           
           Utils.getSingletonInstance().setActiveConnectionType(Server.Type.TCP);
@@ -107,7 +110,7 @@ private String clientSocketAddress = "";
             	String JSONString = in.readUTF();
             	Utils.getSingletonInstance().handleInput(JSONString);
             	
-            	//Asynchrony call is NOT POSSIBLE here as above => the bluetooth approach
+            	//Asynchrony call is NOT POSSIBLE here as above => the Bluetooth approach
             	//start it on thread here and the input on the client
            
 
@@ -134,12 +137,12 @@ private String clientSocketAddress = "";
 	           
 	            
             } catch (JSONException e) {
-				//System.err.println("The client is not sending JSON files! Disconecting...");
+				//System.err.println("The client is not sending JSON files! Disconnecting...");
 				//e.printStackTrace();
 				Utils.getSingletonInstance().resetAllValues();
 
 		        Utils.getSingletonInstance().setActiveConnectionType(Server.Type.Nothing);
-				super.updateUtilsServerInfos(String.format("The client it is not sending JSON files. Disconecting... %s",this.serverInfo));
+				super.updateUtilsServerInfos(String.format("The client it is not sending JSON files. Disconnecting... %s",this.serverInfo));
 				// this.destroyUInputDevice();
 				super.stopSendingThread();
 				this.run(); //keep in in the loop TODO consider just with another while
@@ -148,14 +151,13 @@ private String clientSocketAddress = "";
 				//System.err.println("The client has disconnected.");
 				Utils.getSingletonInstance().resetAllValues();
 				Utils.getSingletonInstance().setActiveConnectionType(Server.Type.Nothing);
-				super.updateUtilsServerInfos(String.format("The client has disconected... %s",this.serverInfo));
+				super.updateUtilsServerInfos(String.format("The client has disconnected... %s",this.serverInfo));
 				getSocket().close();
 				super.stopSendingThread();
 				// this.destroyUInputDevice();
 				this.run(); //keep in in the loop TODO consider just with another while
 			}
             
-            // ------------- BEST !!!!!
           }
       }catch(SocketTimeoutException s) {
             //System.out.println("Socket timed out!");
@@ -171,7 +173,7 @@ private String clientSocketAddress = "";
 			super.updateUtilsServerInfos(String.format("Failed to accept the server socket..."));
 			// this.destroyUInputDevice();
       } catch (Exception ex){
-    	  // System.err.println("Some unexpected exception... Closing the applicaiton");
+    	  // System.err.println("Some unexpected exception... Closing the application");
     	  super.updateUtilsServerInfos(String.format("Some unexpected exception..."));
     	  Utils.getSingletonInstance().resetAllValues();
     	  super.stopSendingThread();

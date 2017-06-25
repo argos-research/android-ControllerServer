@@ -81,7 +81,7 @@ JNIEXPORT void JNICALL Java_utils_uInputJNI_close_1device
 
 
 /*
-The possible location where the uInput can be stored.
+Getter for the possible location where the uInput can be stored.
 */
 const char* try_to_find_uinput() {
 	  static const char* paths[] = {
@@ -103,7 +103,6 @@ const char* try_to_find_uinput() {
 
 /*
   Make the uInput joystick as the example from MIT: https://github.com/jgeumlek/MoltenGamepad
-
 */
 int make_gamepad_MIT(){
   //for some reason SP2 can't recognize the joystick if I use only the ABS_RX, ABS_RY. That is why I have to use it like this
@@ -154,6 +153,9 @@ int make_gamepad_MIT(){
       //    printf("ERROR READING UIPNUT %s\n","asd");
       //    return -1;
       // }
+
+
+      //try to open the link of it
       uinp_fd = open(try_to_find_uinput(), mode | O_NONBLOCK);
       //uinp_fd = open(path, mode | O_NONBLOCK);
       //uinp_fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK);
@@ -330,6 +332,10 @@ err:
 }
 
 
+/* When using uInput for mapping a keypress to a joystick, you will need to make 
+   the program wait before releasing the key press. This is not the case if you 
+   are trying to make a standard keyboard presses but it is required for the 
+   new initialized joystick because without it, it wont work.*/
 void *send_key_click_thread(void *key_code){
     int key_code_int = (intptr_t)key_code;
     if(send_keyevent(key_code_int, ACTION_DOWN) == EXIT_FAILURE)
@@ -355,6 +361,7 @@ void send_key_click(int key_code){
 
 
 
+/* An example of the most used uInput functions and how it should be used.*/
 void send_click_events()
 {
     // Move pointer to (0,0) location

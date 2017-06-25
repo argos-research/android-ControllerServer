@@ -19,25 +19,35 @@ import httpClient.HttpRequest.IJsonHandler;
 import javax.bluetooth.*;
 
 
+/**
+  * The Bluetooth server class. It holds all of the Bluetooth logic and functions related to this server.
+  *
+  * <b>IMPORTANT!</b> If you face the problem [2] TODO (write down the whole [2] problem statement), you can 
+  * have a look at http://stackoverflow.com/questions/30946821/bluecove-with-bluez-chucks-can-not-open-sdp-session-2-no-such-file-or-direct
+  * or just follow the these steps:
+  *	1. Open the file: /etc/systemd/system/bluetooth.target.wants/bluetooth.service
+  * 2. Add a "- C" at the end of the line ExecStart=/usr/lib/bluetooth/bluetoothd (it has to look like this: ExecStart=/usr/lib/bluetooth/bluetoothd -C)
+  * 3. After changing the line, you will have to reload and restart the bluetooth device with:
+  * #reload
+  * systemctl daemon-reload
+  * #restart
+  * sudo service bluetooth restart
+  * 
+  * 
+  * 
+  * If you are facing also some socket problems (i.e. the client can not connect to the server or client get exception socket closed),
+  * make sure to restart the Bluetooth device with the command from above.
+  * 
+  * It is not always an issue, but it is highly recommended to pair the PC (running the server) and the
+  * android client, which is running the client application.
+  */
 public class BluetoothServer extends Server{
-
-	//94f39d29-7d6d-437d-973b-fba39e49d4ee
-	
-	//working instantly with me
-	
-	//for the problem [2] check http://stackoverflow.com/questions/30946821/bluecove-with-bluez-chucks-can-not-open-sdp-session-2-no-such-file-or-direct
-	// in /etc/systemd/system/bluetooth.target.wants/bluetooth.service
-	// always keep ExecStart=/usr/lib/bluetooth/bluetoothd -C !!! (with -C) at the end
-
-
-	//when the server is not responding (client get exception socket closed) then use 
-	//sudo service bluetooth restart
-	
 	
 	private volatile String clientSocketAddress = "";
 	
 	private volatile String serverInfo = "";
 	
+	//well know UUID and also very stable working one
 	private UUID uuid = new UUID("94f39d297d6d437d973bfba39e49d4ee",false);
 
 	private OutputStream dos = null;
@@ -58,15 +68,7 @@ public class BluetoothServer extends Server{
 	
 	@Override
 	public void sendLogic() {
-//		String greeting = (i++) + " JSR-82 RFCOMM server says hello\n";
-//		try {
-//			dos.write( greeting.getBytes() );
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
 		
-		//NEW
 		HttpRequest.get(new IJsonHandler() {
 			
 			@Override
@@ -127,7 +129,6 @@ public class BluetoothServer extends Server{
 			    	//System.out.println(JSONinput);
 			    	Utils.getSingletonInstance().handleInput(JSONinput);
 			    	
-			    	//start sending only if the enter button is pressed.
 			    	/*
 			        Currently there is a bug in the SpeedDream 2 HTTP API which provides the data from the game. The bug is
 			        that when you choose to play a game and the loading screen is ready, you need to press Enter to start
@@ -174,26 +175,6 @@ public class BluetoothServer extends Server{
 				e.printStackTrace();
 			}
 		}
-	}
-	
-	
-	public static boolean pingHost(String host, int port, int timeout) {
-		Socket socket = null;
-	    try  {
-	    	socket = new Socket();
-	        socket.connect(new InetSocketAddress(host, port), timeout);
-	        return true;
-	    } catch (IOException e) {
-	        return false; // Either timeout or unreachable or failed DNS lookup.
-	    } finally{
-	    	if(socket != null){
-	    		try {
-					socket.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-	    	}
-	    }
 	}
 } 
 

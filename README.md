@@ -7,6 +7,7 @@ Once you have cloned the project, navigate to the android-ControllerServer direc
 ```
 ./masterRun 
 ```
+Keep in mind, that the server should run before you open Speed Dreams 2 otherwise Speed Dreams 2 won't be able to find and use the newly created Joystick pointer of the uInput device.
 
 ## Required packages for Ubuntu
 
