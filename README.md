@@ -17,7 +17,7 @@ This server application is tested on Ubuntu 15.10 with openjdk version "1.8.0_91
 sudo apt-get install libbluetooth-dev 
 ````
 
-## Know errors
+## Known errors
 
 If you are getting the error:
 ```
