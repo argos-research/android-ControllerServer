@@ -2,7 +2,7 @@
 android smartphone as sensor-based input device for control of an automotive simulator (server part).
 
 ## Usage
-Once you have cloned the project, navigate to the android-ControllerServer directory. From there open the masterRun.sh and change the 17th line in order to match you java version (if you skip this and the java version is not the same, you will get the error "jni.h" not found!). After that just run the servers with the command from below and follow the instructions printed to the console:
+Once you have cloned the project, navigate to the android-ControllerServer directory. From there open the masterRun.sh and change the 17th line in order to match your java version (if you skip this and the java version is not the same, you will get the error "jni.h" not found!). After that just run the servers with the command from below and follow the instructions printed to the console:
 
 ```
 ./masterRun 
