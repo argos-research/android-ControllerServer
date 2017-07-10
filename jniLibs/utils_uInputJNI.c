@@ -106,7 +106,7 @@ const char* try_to_find_uinput() {
 */
 int make_gamepad_MIT(){
   //for some reason SP2 can't recognize the joystick if I use only the ABS_RX, ABS_RY. That is why I have to use it like this
-  static int abs[] = {ABS_X, ABS_Y, ABS_RX, ABS_RY};
+      static int abs[] = {ABS_X, ABS_Y, ABS_RX, ABS_RY};
 	//static int abs[] = {ABS_RX, ABS_RY};
   //static int abs[] = {ABS_X, ABS_Y};
       static int key[] = {BTN_SOUTH, BTN_EAST, BTN_NORTH, BTN_WEST, BTN_TL, BTN_TR, KEY_ENTER}; //KEY_ENTER is used because the SP2 HTTP server is not running OK and this will make my server to start the sedning Thread to the client. It won't be shown in the jstest-gtk as a joystic button!
@@ -123,9 +123,9 @@ int make_gamepad_MIT(){
 
 	  
       struct uinput_user_dev uidev;
-	  //int fd;
-	  int i;
-	  int mode = O_WRONLY;
+	    //int fd;
+  	  int i;
+  	  int mode = O_WRONLY;
 
       is_existing = 0;
 
@@ -160,7 +160,7 @@ int make_gamepad_MIT(){
       //uinp_fd = open(path, mode | O_NONBLOCK);
       //uinp_fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK);
       if (uinp_fd < 0) {
-        printf("open uinput %d\n",1);
+        printf("unable to open uinput %d\n",1);
         return -1;
       }
       
@@ -179,10 +179,11 @@ int make_gamepad_MIT(){
         if(ioctl(uinp_fd, UI_SET_ABSBIT, abs[i]) < 0 ){
             printf("unable to write %s\n","UI_SET_ABSBIT to "+abs[i]);
         }
+        //example with maximum values
         // uidev.absmin[abs[i]] = -32768;
         // uidev.absmax[abs[i]] = 32767;
         // uidev.absflat[abs[i]] = 1024;
-
+        //set the dimensions of the device
         uidev.absmin[abs[i]] = -1024;
         uidev.absmax[abs[i]] = 1024;
         uidev.absflat[abs[i]] = 0;
@@ -197,8 +198,6 @@ int make_gamepad_MIT(){
       
       //for (i = 0; key[i] >= 0; i++) {
       for (i = 0; i < sizeof(key)/sizeof(int); i++) {
-        //TODO with the line below you can see which buttons are set (their corresponding int values).
-        //printf("key[%d] = %d\n",i,key[i]);
         if(ioctl(uinp_fd, UI_SET_KEYBIT, key[i]) < 0 ){
             printf("unable to write %s\n","UI_SET_KEYBIT to "+key[i]);
         }
@@ -214,7 +213,7 @@ int make_gamepad_MIT(){
 
       write(uinp_fd, &uidev, sizeof(uidev));
       if (ioctl(uinp_fd, UI_DEV_CREATE) < 0)
-            printf("uinput device creation %d\n",1);
+            printf("uinput device unsuccessful creation %d\n",1);
 
 
       return 1; 
@@ -341,8 +340,9 @@ void *send_key_click_thread(void *key_code){
     if(send_keyevent(key_code_int, ACTION_DOWN) == EXIT_FAILURE)
           printf("Failed to performed %s\n","ACTION_DOWN on BTN_SOUTH");
      
-     //this is needed in order the UInput device to detect a normal joystick press
+      //this is needed in order the UInput device to detect a normal joystick press
       usleep(50000);
+      
 
       if(send_keyevent(key_code_int, ACTION_UP) == EXIT_FAILURE)
           printf("Failed to performed %s\n","ACTION_UP on BTN_SOUTH");

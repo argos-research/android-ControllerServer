@@ -193,6 +193,8 @@ public class Utils{
 		packageCounter ++;
 		
 		currMilis = ob.getLong("Created time");
+
+		//System.out.println("Received JSON: "+ob.toString());
 		
 		this.getKeyEvent(ob);
 		
@@ -391,11 +393,13 @@ public class Utils{
      * Although all of checks in the {@link Tester#getLocalHostLANAddress()},
      * some loopback addresses or IPv6 may be return which is not desired.
      * That is why here this is tested.
-     * @param address some interface address.
+     * @param address some interface address. An example would be "/131.159.206.165"
      * @return true if the given address is not loopback or IPv6.
      */
     private boolean isRightAddress(String address){
-        return address.indexOf("127") != 0 && !address.contains("f");
+    	String example = "/192.168.255.254";
+        //return address.indexOf("127") != 0 && !address.contains("f");
+        return address.indexOf("127") != 0 && example.length() >= address.length() && !address.contains("f");
     }
 
     //found on http://stackoverflow.com/questions/9481865/getting-the-ip-address-of-the-current-machine-using-java
@@ -415,17 +419,18 @@ public class Utils{
 	            for (Enumeration inetAddrs = iface.getInetAddresses(); inetAddrs.hasMoreElements();) {
 	                InetAddress inetAddr = (InetAddress) inetAddrs.nextElement();
 	                if (!inetAddr.isLoopbackAddress()) {
-
 	                    if (inetAddr.isSiteLocalAddress()) {
 	                        // Found non-loopback site-local address. Return it immediately...
-	                    	if(isRightAddress(inetAddr.toString()))
+	                    	if(isRightAddress(inetAddr.toString())){
 	                    		return inetAddr;
+	                    	}
 	                    }
 	                    else if (candidateAddress == null) {
 	                        // Found non-loopback address, but not necessarily site-local.
 	                        // Store it as a candidate to be returned if site-local address is not subsequently found...
-	                        if(isRightAddress(inetAddr.toString()))
+	                        if(isRightAddress(inetAddr.toString())){
 	                        	candidateAddress = inetAddr;
+	                        }
 	                        // Note that we don't repeatedly assign non-loopback non-site-local addresses as candidates,
 	                        // only the first. For subsequent iterations, candidate will be non-null.
 	                    }
@@ -437,7 +442,8 @@ public class Utils{
 	            // Server might have a non-site-local address assigned to its NIC (or it might be running
 	            // IPv6 which deprecates the "site-local" concept).
 	            // Return this non-loopback candidate address...
-	            return candidateAddress;
+	            //if(isRightAddress(candidateAddress.toString()))
+            	return candidateAddress;
 	        }
 	        // At this point, we did not find a non-loopback address.
 	        // Fall back to returning whatever InetAddress.getLocalHost() returns...
